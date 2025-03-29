@@ -1,0 +1,16 @@
+import React from "react";
+import { Stack } from "expo-router";
+import { GrayColors } from "../../../src/constants/colors";
+
+export default function SettingLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false, // ✅ Stack 내부 헤더 숨기기
+        contentStyle: {
+          backgroundColor: GrayColors.white, // ✅ 모든 화면 기본 배경 흰색
+        },
+      }}
+    />
+  );
+}

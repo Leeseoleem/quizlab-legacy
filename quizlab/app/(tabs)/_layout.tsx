@@ -2,19 +2,17 @@ import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, Pressable } from "react-native";
 
-import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { GrayColors, MainColors } from "@/src/constants/colors";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: MainColors.primary,
+        tabBarInactiveTintColor: GrayColors.gray20,
         headerShown: false,
         tabBarButton: (props) => <Pressable {...props} android_ripple={null} />,
         tabBarBackground: TabBarBackground,
@@ -30,18 +28,49 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "홈",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+            <Feather name="home" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="problem"
         options={{
-          title: "Explore",
+          title: "문제",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
+            <Feather name="folder-plus" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="record"
+        options={{
+          title: "기록",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons
+              name="pencil-outline"
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="share"
+        options={{
+          title: "공유",
+          tabBarIcon: ({ color }) => (
+            <Feather name="share" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="setting"
+        options={{
+          title: "설정",
+          tabBarIcon: ({ color }) => (
+            <Feather name="settings" size={24} color={color} />
           ),
         }}
       />
