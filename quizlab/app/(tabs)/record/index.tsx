@@ -5,8 +5,14 @@ import { View, Text } from "react-native";
 
 export default function RecordScreen() {
   return (
-    <SafeAreaView>
-      <Text>하이s</Text>
+    <SafeAreaView style={styles.container}>
+      <Text>기록 화면</Text>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, TextInput } from "react-native";
 import { TouchableOpacity } from "react-native";
 
 import { GestureResponderEvent, ViewStyle } from "react-native";
@@ -15,16 +15,34 @@ type HeaderProps = {
   rightIcon?: "search" | "edit" | "menu" | "time";
   clockColor?: string;
   timeText?: string;
-  onPress?: (event: GestureResponderEvent) => void;
+  onPressBack?: (event: GestureResponderEvent) => void;
+  onPressSearch?: (event: GestureResponderEvent) => void;
+  onPressEndearch?: (event: GestureResponderEvent) => void;
+  onPressEdit?: (event: GestureResponderEvent) => void;
+  onPressMenu?: (event: GestureResponderEvent) => void;
+  // 검색창 모드 여부
+  isSearchMode?: boolean;
+  onChangeSearchText?: (text: string) => void;
+  searchText?: string;
+  onPressClearSearch?: (event: GestureResponderEvent) => void; // 검색칭 제거
 };
 
 export default function Header({
   title,
   showBack,
   rightIcon,
-  onPress,
   clockColor,
   timeText,
+  onPressBack,
+  onPressSearch,
+  onPressEndearch,
+  onPressEdit,
+  onPressMenu,
+  // search header
+  isSearchMode,
+  onChangeSearchText,
+  searchText,
+  onPressClearSearch,
 }: HeaderProps) {
   return (
     <View style={styles.header}>
@@ -32,7 +50,7 @@ export default function Header({
         {showBack && (
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={onPress}
+            onPress={onPressBack}
             style={{
               marginRight: 24,
             }}
@@ -40,16 +58,50 @@ export default function Header({
             <Feather name="arrow-left" size={24} color={GrayColors.black} />
           </TouchableOpacity>
         )}
-        <Text style={styles.title}>{title}</Text>
-      </View>
-      <View>
-        {rightIcon === "search" && (
-          <TouchableOpacity>
-            <Feather name="search" size={24} color={GrayColors.black} />
-          </TouchableOpacity>
+        {isSearchMode ? (
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <TextInput
+              style={styles.searchInput}
+              placeholder="검색어를 입력하세요"
+              value={searchText}
+              onChangeText={onChangeSearchText}
+              multiline={false}
+              numberOfLines={1}
+            />
+            <Feather
+              name="x-circle"
+              size={18}
+              color={GrayColors.black}
+              style={{
+                position: "absolute",
+                right: 16,
+              }}
+              onPress={onPressClearSearch}
+            />
+          </View>
+        ) : (
+          <Text style={styles.title}>{title}</Text>
         )}
+      </View>
+      <View style={styles.right}>
+        {rightIcon === "search" &&
+          (isSearchMode ? (
+            <TouchableOpacity activeOpacity={0.8} onPress={onPressEndearch}>
+              <Feather name="x" size={24} color={GrayColors.black} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity activeOpacity={0.8} onPress={onPressSearch}>
+              <Feather name="search" size={24} color={GrayColors.black} />
+            </TouchableOpacity>
+          ))}
         {rightIcon === "edit" && (
-          <TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.8}>
             <MaterialCommunityIcons
               name="pencil-outline"
               size={24}
@@ -58,7 +110,7 @@ export default function Header({
           </TouchableOpacity>
         )}
         {rightIcon === "menu" && (
-          <TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.8}>
             <Feather name="more-vertical" size={24} color={GrayColors.black} />
           </TouchableOpacity>
         )}
@@ -82,6 +134,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   left: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  right: {
+    paddingLeft: 16,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -97,5 +155,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontFamily: "Pretendard-Regular",
     color: GrayColors.gray30,
+  },
+  searchInput: {
+    flex: 1,
+    paddingLeft: 16,
+    paddingRight: 50,
+    paddingVertical: 8,
+    borderColor: GrayColors.black,
+    borderWidth: 1,
+    borderRadius: 8,
   },
 });

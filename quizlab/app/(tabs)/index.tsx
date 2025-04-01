@@ -6,7 +6,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View>
-        <Text>하이??</Text>
+        <Text>저는 집 입니다.</Text>
       </View>
     </SafeAreaView>
   );

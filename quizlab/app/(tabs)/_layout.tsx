@@ -1,29 +1,35 @@
-import { Tabs } from "expo-router";
+import { Tabs, useNavigationContainerRef } from "expo-router";
+import { useNavigationState } from "@react-navigation/native";
 import React from "react";
 import { Platform, Pressable } from "react-native";
 
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { GrayColors, MainColors } from "@/src/constants/colors";
+import { GrayColors, MainColors } from "@/constants/Colors";
 
 export default function TabLayout() {
+  const navigationRef = useNavigationContainerRef();
+  const state = useNavigationState((state) => state);
+
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarActiveTintColor: MainColors.primary,
         tabBarInactiveTintColor: GrayColors.gray20,
         headerShown: false,
         tabBarButton: (props) => <Pressable {...props} android_ripple={null} />,
         tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: "absolute",
-          },
-          default: {},
-        }),
-      }}
+        tabBarStyle: {
+          ...Platform.select({
+            ios: {
+              // Use a transparent background on iOS to show the blur effect
+              position: "absolute",
+            },
+            default: {},
+          }),
+        },
+      })}
     >
       <Tabs.Screen
         name="index"

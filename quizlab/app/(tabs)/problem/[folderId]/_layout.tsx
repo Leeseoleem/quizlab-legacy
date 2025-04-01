@@ -1,8 +1,7 @@
-import React from "react";
 import { Stack } from "expo-router";
 import { GrayColors } from "@/constants/Colors";
 
-export default function SettingLayout() {
+export default function FolderLayout() {
   return (
     <Stack
       screenOptions={{

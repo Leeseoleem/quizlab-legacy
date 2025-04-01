@@ -1,6 +1,7 @@
 export const MainColors = {
   primary: "#F97316",
   secondary: "#FFA94D",
+  tertiary: "#FDF2EB",
   primaryForeground: "#FDFCF6",
   danger: "#EF4444",
   dangerSec: "#FFCFCF",

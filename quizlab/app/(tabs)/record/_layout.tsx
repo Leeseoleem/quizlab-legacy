@@ -1,7 +1,6 @@
 import React from "react";
 import { Stack } from "expo-router";
-import { GrayColors } from "../../../src/constants/colors";
-
+import { GrayColors } from "@/constants/Colors";
 export default function RecordLayout() {
   return (
     <Stack
