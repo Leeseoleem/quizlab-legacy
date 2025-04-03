@@ -8,12 +8,14 @@ import { FontStyle } from "@/constants/Font";
 
 type ProblemListProps = {
   folderName: string;
+  folderSub: string;
   onPressSolve: () => void;
   deleteList?: () => void;
 };
 
 export default function ProblemList({
   folderName,
+  folderSub,
   onPressSolve,
   deleteList,
 }: ProblemListProps) {
@@ -23,20 +25,43 @@ export default function ProblemList({
       activeOpacity={0.8}
       onPress={onPressSolve}
     >
-      <View style={{ flexDirection: "row" }}>
-        <Feather name="folder" size={24} color="black" />
-        <Text
-          style={{
-            ...FontStyle.contentsText,
-            color: GrayColors.black,
-            marginLeft: 16,
-          }}
-        >
-          {folderName}
-        </Text>
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
+        <View style={styles.floderRounded}>
+          <Feather name="folder" size={24} color={MainColors.primary} />
+        </View>
+        <View style={{ marginLeft: 16, flex: 1 }}>
+          <Text
+            style={{
+              ...FontStyle.listTitle,
+              color: GrayColors.black,
+              marginBottom: 4,
+              flexWrap: "wrap",
+              flexShrink: 1,
+            }}
+          >
+            {folderName}
+          </Text>
+          <Text
+            style={{
+              ...FontStyle.subText,
+              color: GrayColors.gray30,
+              flexWrap: "wrap",
+              flexShrink: 1,
+            }}
+          >
+            {folderSub}
+          </Text>
+        </View>
       </View>
-      <TouchableOpacity activeOpacity={0.8} onPress={deleteList}>
-        <Feather name="trash" size={24} color={GrayColors.gray40} />
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={deleteList}
+        style={{
+          alignItems: "center",
+          paddingLeft: 16,
+        }}
+      >
+        <Feather name="edit" size={20} color={GrayColors.gray40} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -51,5 +76,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: GrayColors.gray30,
     backgroundColor: GrayColors.white,
+  },
+  floderRounded: {
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: MainColors.tertiary,
+    borderRadius: 1000,
   },
 });

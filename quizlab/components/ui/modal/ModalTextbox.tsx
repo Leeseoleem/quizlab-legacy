@@ -7,22 +7,25 @@ import Octicons from "@expo/vector-icons/Octicons";
 
 type ModalTextboxProps = {
   folderText: string;
+  placeholder: string;
   onChangeFolderText: (text: string) => void;
   onPressClear: () => void;
 };
 
 export default function ModalTextbox({
   folderText,
+  placeholder,
   onChangeFolderText,
   onPressClear,
 }: ModalTextboxProps) {
   return (
     <View style={styles.headerContainer}>
       <TextInput
-        placeholder="폴더명을 입력하세요"
+        placeholder={placeholder}
         style={{
           ...styles.searchInput,
           borderColor: folderText ? MainColors.primary : GrayColors.gray20,
+          borderWidth: folderText ? 1.5 : 1,
         }}
         value={folderText}
         onChangeText={onChangeFolderText}
@@ -55,7 +58,6 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 50,
     paddingVertical: 12,
-    borderWidth: 1,
     borderRadius: 8,
     fontFamily: "Pretendard-Medium",
   },

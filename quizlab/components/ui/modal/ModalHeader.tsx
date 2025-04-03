@@ -8,7 +8,7 @@ import { GrayColors } from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
 
 export type ModalHeaderProps = {
-  type?: "back" | "exist";
+  type?: "back" | "exist" | "simple";
   title: string;
   onPressBack?: () => void;
   onPressExist?: () => void;
@@ -44,6 +44,11 @@ export default function ModalHeader({
             }}
             onPress={onPressExist}
           />
+          <Text style={styles.title}>{title}</Text>
+        </View>
+      )}
+      {type === "simple" && (
+        <View style={styles.backConainer}>
           <Text style={styles.title}>{title}</Text>
         </View>
       )}

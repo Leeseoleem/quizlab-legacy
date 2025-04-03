@@ -12,6 +12,7 @@ export const MainColors = {
 export const GrayColors = {
   gray40: "#1C160F",
   gray30: "#7A7672",
+  grayHax: "#B1ADA7",
   gray20: "#E5E2DB",
   gray10: "#F5F5ED",
   white: "#FFFFFF",

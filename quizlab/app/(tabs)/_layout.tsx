@@ -1,6 +1,6 @@
 import { Tabs, useNavigationContainerRef } from "expo-router";
-import { useNavigationState } from "@react-navigation/native";
-import React from "react";
+import { useNavigationState, Route } from "@react-navigation/native";
+import React, { useRef } from "react";
 import { Platform, Pressable } from "react-native";
 
 import Feather from "@expo/vector-icons/Feather";
@@ -11,6 +11,7 @@ import { GrayColors, MainColors } from "@/constants/Colors";
 export default function TabLayout() {
   const navigationRef = useNavigationContainerRef();
   const state = useNavigationState((state) => state);
+  const tabNavigationRefs = useRef<{ [key: string]: any }>({});
 
   return (
     <Tabs
@@ -48,6 +49,19 @@ export default function TabLayout() {
             <Feather name="folder-plus" size={24} color={color} />
           ),
         }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+
+            const tab = state.routes.find(
+              (r: Route<string>) => r.key === route.key
+            );
+            if (tab && tab.state?.index > 0) {
+              // 현재 탭의 스택이 루트가 아니면 popToTop
+              navigation.navigate(route.name); // 또는 navigation.popToTop() - 사용하려면 Stack 사용 필요
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="record"
@@ -61,6 +75,19 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+
+            const tab = state.routes.find(
+              (r: Route<string>) => r.key === route.key
+            );
+            if (tab && tab.state?.index > 0) {
+              // 현재 탭의 스택이 루트가 아니면 popToTop
+              navigation.navigate(route.name); // 또는 navigation.popToTop() - 사용하려면 Stack 사용 필요
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="share"
@@ -79,6 +106,19 @@ export default function TabLayout() {
             <Feather name="settings" size={24} color={color} />
           ),
         }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+
+            const tab = state.routes.find(
+              (r: Route<string>) => r.key === route.key
+            );
+            if (tab && tab.state?.index > 0) {
+              // 현재 탭의 스택이 루트가 아니면 popToTop
+              navigation.navigate(route.name); // 또는 navigation.popToTop() - 사용하려면 Stack 사용 필요
+            }
+          },
+        })}
       />
     </Tabs>
   );

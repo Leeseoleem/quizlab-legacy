@@ -4,6 +4,7 @@ import {
   View,
   TouchableOpacity,
   GestureResponderEvent,
+  ViewStyle,
 } from "react-native";
 import { StyleSheet } from "react-native";
 
@@ -13,29 +14,38 @@ import { FontStyle } from "@/constants/Font";
 
 type AddBtnProps = {
   type: "default" | "non" | "other" | "add";
+  btnStyle?: ViewStyle;
   onPress?: (event: GestureResponderEvent) => void;
   btnTitle?: string;
 };
 
-export default function Button({ type, onPress, btnTitle }: AddBtnProps) {
+export default function Button({
+  type,
+  btnStyle,
+  onPress,
+  btnTitle,
+}: AddBtnProps) {
   return (
     <TouchableOpacity
-      style={{
-        ...styles.btnContainer,
-        backgroundColor:
-          type === "default"
-            ? MainColors.primary
-            : type === "non"
-            ? MainColors.secondary
-            : GrayColors.white,
-        borderWidth: type === "add" || type === "other" ? 1 : 0,
-        borderColor:
-          type === "add"
-            ? GrayColors.gray30
-            : "other"
-            ? GrayColors.gray20
-            : undefined,
-      }}
+      style={[
+        styles.btnContainer,
+        {
+          backgroundColor:
+            type === "default"
+              ? MainColors.primary
+              : type === "non"
+              ? MainColors.secondary
+              : GrayColors.white,
+          borderWidth: type === "add" || type === "other" ? 1 : 0,
+          borderColor:
+            type === "add"
+              ? GrayColors.gray30
+              : "other"
+              ? GrayColors.gray20
+              : undefined,
+        },
+        btnStyle,
+      ]}
       activeOpacity={0.8}
       onPress={onPress}
     >

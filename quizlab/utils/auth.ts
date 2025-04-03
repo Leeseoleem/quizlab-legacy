@@ -8,6 +8,7 @@ export const loginWithEmail = async (email: string, password: string) => {
       email,
       password
     );
+
     return { success: true, user: userCredential.user };
   } catch (error: any) {
     console.error("Login error:", error.code);

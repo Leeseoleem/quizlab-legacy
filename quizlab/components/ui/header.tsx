@@ -67,26 +67,33 @@ export default function Header({
             }}
           >
             <TextInput
-              style={styles.searchInput}
+              style={{
+                ...styles.searchInput,
+                borderColor: searchText ? GrayColors.black : GrayColors.grayHax,
+              }}
               placeholder="검색어를 입력하세요"
               value={searchText}
               onChangeText={onChangeSearchText}
               multiline={false}
               numberOfLines={1}
             />
-            <Feather
-              name="x-circle"
-              size={18}
-              color={GrayColors.black}
-              style={{
-                position: "absolute",
-                right: 16,
-              }}
-              onPress={onPressClearSearch}
-            />
+            {searchText && (
+              <Feather
+                name="x-circle"
+                size={18}
+                color={GrayColors.black}
+                style={{
+                  position: "absolute",
+                  right: 16,
+                }}
+                onPress={onPressClearSearch}
+              />
+            )}
           </View>
         ) : (
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
         )}
       </View>
       <View style={styles.right}>
@@ -146,6 +153,8 @@ const styles = StyleSheet.create({
   title: {
     color: GrayColors.black,
     ...FontStyle.title,
+    flexShrink: 1,
+    flexWrap: "wrap",
   },
   timeFram: {
     flexDirection: "row",
@@ -161,7 +170,6 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 50,
     paddingVertical: 8,
-    borderColor: GrayColors.black,
     borderWidth: 1,
     borderRadius: 8,
   },

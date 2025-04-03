@@ -1,10 +1,9 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Alert } from "react-native";
 import { router } from "expo-router";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, View, Text, Image } from "react-native";
+import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 import { TextInput } from "react-native-paper";
 
 import { GrayColors, MainColors } from "@/constants/Colors";
@@ -132,6 +131,12 @@ export default function LoginScreen() {
         ) : (
           <Button btnTitle="로그인" type="default" onPress={handleLogin} />
         )}
+        <View style={styles.bottomText}>
+          <Text style={styles.textDes}>아직 회원이 아니신가요?</Text>
+          <TouchableOpacity onPress={() => router.push("/(auth)/signUpStep1")}>
+            <Text style={styles.textSignup}>회원가입</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -145,10 +150,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mainContents: {
-    padding: 16,
+    paddingHorizontal: 16,
   },
   logoContents: {
+    marginTop: 60,
     flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
   },
   mainTitle: {
@@ -167,5 +174,23 @@ const styles = StyleSheet.create({
     width: "100%",
     position: "absolute",
     bottom: 16,
+  },
+  bottomText: {
+    marginTop: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  textDes: {
+    fontFamily: "Pretendard-Regular",
+    fontSize: 12,
+    color: GrayColors.gray40,
+    letterSpacing: -0.4,
+    marginRight: 4,
+  },
+  textSignup: {
+    fontFamily: "Pretendard-SemiBold",
+    fontSize: 12,
+    color: MainColors.primary,
+    letterSpacing: -0.4,
   },
 });

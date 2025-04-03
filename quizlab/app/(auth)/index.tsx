@@ -20,13 +20,16 @@ export default function StartScreen() {
           }}
         />
         <Text style={styles.mainTitle}>Quiz Lab</Text>
-        <Text style={styles.subTitle}>나만의 문제집,한 문제씩 차근차근</Text>
+        <Text style={styles.subTitle}>나만의 문제집, 한 문제씩 차근차근</Text>
       </View>
       <View style={styles.bottomContents}>
         <Button
           btnTitle="시작하기"
           type="default"
           onPress={() => router.push("/login")}
+          btnStyle={{
+            borderRadius: 100,
+          }}
         />
       </View>
     </SafeAreaView>

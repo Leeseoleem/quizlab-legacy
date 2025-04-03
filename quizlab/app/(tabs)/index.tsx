@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text } from "react-native";
+import { GrayColors } from "@/constants/Colors";
 
 export default function HomeScreen() {
   return (
@@ -17,6 +18,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: GrayColors.white,
   },
   stepContainer: {
     gap: 8,

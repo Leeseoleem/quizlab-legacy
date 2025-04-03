@@ -4,10 +4,10 @@ import { Slot } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -39,10 +39,12 @@ export default function RootLayout() {
 
   return (
     <PaperProvider>
-      <AuthProvider>
-        <Slot />
-        <StatusBar style="auto" />
-      </AuthProvider>
+      <GestureHandlerRootView>
+        <AuthProvider>
+          <Slot />
+          <StatusBar style="auto" />
+        </AuthProvider>
+      </GestureHandlerRootView>
     </PaperProvider>
   );
 }
