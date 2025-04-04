@@ -8,25 +8,26 @@ import React, {
 } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { GrayColors, MainColors } from "@/constants/Colors";
 
-// 1. props 타입 정의
+// props 타입 정의
 type BottomModalProps = {
   title: string;
-  onConfirm?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
-// 2. ref 타입 정의
+// ref 타입 정의
 export type BottomModalRef = {
   open: () => void;
   close: () => void;
 };
 
-// 3. 컴포넌트 정의 (props/ref 둘 다 타입 명시 X)
 const BottomModal = (
   props: BottomModalProps,
   ref: React.Ref<BottomModalRef>
 ) => {
-  const { title, onConfirm } = props;
+  const { title, onEdit, onDelete } = props;
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["40%"], []);
   const [visible, setVisible] = useState(false);
@@ -54,12 +55,39 @@ const BottomModal = (
         backgroundStyle={{ borderRadius: 16 }}
       >
         <BottomSheetView style={styles.contentContainer}>
-          <Text style={{ fontSize: 16 }}>{title}</Text>
-          {onConfirm && (
-            <TouchableOpacity onPress={onConfirm}>
-              <Text style={{ color: "blue", marginTop: 16 }}>확인</Text>
-            </TouchableOpacity>
-          )}
+          <View style={styles.headerTitle}>
+            <Text style={styles.title}>{title}</Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.modalBtn}
+            onPress={onEdit}
+          >
+            <Text style={styles.btnTitle} numberOfLines={1}>
+              수정하기
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.modalBtn}
+            onPress={onDelete}
+          >
+            <Text style={{ ...styles.btnTitle, color: MainColors.danger }}>
+              삭제하기
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={{
+              ...styles.modalBtn,
+              alignItems: "center",
+              borderTopWidth: 1,
+              borderColor: GrayColors.gray20,
+            }}
+            onPress={() => setVisible(false)}
+          >
+            <Text style={styles.btnTitle}>닫기</Text>
+          </TouchableOpacity>
         </BottomSheetView>
       </BottomSheet>
     </View>
@@ -75,8 +103,27 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   contentContainer: {
-    padding: 24,
     alignItems: "center",
     justifyContent: "center",
+  },
+  headerTitle: {
+    width: "100%",
+    paddingVertical: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontFamily: "Pretendard-Regular",
+    fontSize: 12,
+    color: GrayColors.gray30,
+  },
+  modalBtn: {
+    width: "100%",
+    padding: 16,
+  },
+  btnTitle: {
+    fontFamily: "Pretendard-Medium",
+    fontSize: 14,
+    color: GrayColors.black,
   },
 });

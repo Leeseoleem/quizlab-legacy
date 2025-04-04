@@ -2,12 +2,13 @@ import { db } from "@/lib/firebaseConfig";
 import {
   collection,
   addDoc,
+  getDocs,
+  deleteDoc,
   serverTimestamp,
   doc,
   updateDoc,
   query,
   where,
-  getDocs,
   Timestamp,
 } from "firebase/firestore";
 
@@ -50,6 +51,17 @@ export async function updateFolder(
     console.log("✏️ 폴더 수정 성공:", folderId);
   } catch (error) {
     console.error("❌ 폴더 수정 실패:", error);
+    throw error;
+  }
+}
+
+export async function deleteFolder(folderId: string): Promise<void> {
+  try {
+    const folderRef = doc(db, "folders", folderId);
+    await deleteDoc(folderRef);
+    console.log("🗑️ 폴더 삭제 완료:", folderId);
+  } catch (error) {
+    console.error("❌ 폴더 삭제 중 오류:", error);
     throw error;
   }
 }

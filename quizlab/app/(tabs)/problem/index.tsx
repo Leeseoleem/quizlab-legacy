@@ -5,7 +5,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image } from "react-native";
 import { router } from "expo-router";
 
-import { createFolder, getUserFolders, Folder } from "@/utils/folders";
+import {
+  createFolder,
+  getUserFolders,
+  updateFolder,
+  deleteFolder,
+  Folder,
+} from "@/utils/folders";
 import { auth } from "@/lib/firebaseConfig";
 
 import { GrayColors, MainColors } from "@/constants/Colors";
@@ -14,6 +20,7 @@ import CUCat from "@/assets/images/CUcat.png";
 
 import Header from "@/components/ui/header";
 import AddBtn from "@/components/ui/button/AddBtn";
+import CreateFolderModal from "@/components/ui/modal/screenModal/CreatFolderModal";
 import ModalContainer from "@/components/ui/modal/ModalContainer";
 import ModalTextbox from "@/components/ui/modal/ModalTextbox";
 import ProblemList from "@/components/ui/list/ProblemList";
@@ -33,6 +40,7 @@ export default function ProblemScreen() {
   const [folderDesText, setFolderDesText] = useState("");
 
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null); // 선택된 폴더
 
   useEffect(() => {
     const fetchFolders = async () => {
@@ -56,17 +64,6 @@ export default function ProblemScreen() {
 
     fetchFolders();
   }, []);
-
-  // 일반 데이터
-  const problems = [
-    {
-      id: "1",
-      title: "정보처리기사 1과목: 소프트웨어 설계- 자주 틀리는 문제",
-      subscribe: "정보처리기사 1과목: 소프트웨어 설계- 자주 틀리는 문제",
-    },
-    { id: "2", title: "문제 2", subscribe: "문제2 입니다." },
-    { id: "3", title: "문제 3", subscribe: "문제3 입니다." },
-  ];
 
   const handleCreateFolder = async () => {
     try {
@@ -92,22 +89,110 @@ export default function ProblemScreen() {
 
   const bottomModalRef = useRef<BottomModalRef>(null);
 
-  const handleOpenModal = () => {
-    bottomModalRef.current?.open();
+  // 문제 수정 모달
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [folderEditText, setFolderEditText] = useState("");
+  const [folderEditDesText, setFolderEditDesText] = useState("");
+
+  const handleOpenModal = (folder: Folder) => {
+    setSelectedFolder(folder); // 현재 선택한 폴더 정보 저장
+    setFolderEditText(folder.title);
+    setFolderEditDesText(folder.description);
+    bottomModalRef.current?.open(); // 모달 열기
+  };
+
+  const handelEdit = () => {
+    bottomModalRef.current?.close();
+    setTimeout(() => {
+      setOpenEditModal(true); // 이건 일반 모달 (ex: ModalContainer)
+    }, 300); // BottomSheet 애니메이션 종료 시간 고려
+  };
+
+  const handleEditFolder = async () => {
+    try {
+      const user = auth.currentUser; // 현재 사용중인 유저 정보
+
+      if (!user) {
+        showToast("로그인이 만료되었습니다");
+        router.replace("/(auth)/login");
+        return;
+      }
+
+      if (!selectedFolder?.id) {
+        showToast("다시 선택해주세요");
+        setOpenEditModal(false);
+        return;
+      }
+
+      // 수정용 데이터
+      const updatedData = {
+        title: folderEditText,
+        description: folderEditDesText,
+      };
+      await updateFolder(selectedFolder?.id, updatedData);
+      showToast("폴더가 수정되었습니다");
+
+      const updated = await getUserFolders(user.uid);
+      setFolders(updated);
+
+      setOpenEditModal(false);
+      setFolderEditText("");
+      setFolderEditDesText("");
+    } catch (e) {
+      showToast("수정에 실패하였습니다");
+    }
+  };
+
+  const handelDeleteFolder = async () => {
+    try {
+      const user = auth.currentUser; // 현재 사용중인 유저 정보
+
+      if (!user) {
+        showToast("로그인이 만료되었습니다");
+        router.replace("/(auth)/login");
+        return;
+      }
+
+      if (!selectedFolder?.id) {
+        showToast("다시 선택해주세요");
+        setOpenEditModal(false);
+        return;
+      }
+
+      await deleteFolder(selectedFolder.id);
+
+      bottomModalRef.current?.close();
+      showToast("폴더가 삭제되었습니다");
+
+      const updated = await getUserFolders(user.uid);
+      setFolders(updated);
+      setSelectedFolder(null);
+    } catch (e) {
+      showToast("오류가 발생했습니다");
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ModalContainer
+      <CreateFolderModal
         visible={openModal}
         onRequestClose={() => setOpenModal(false)}
-        onPressBack={() => setOpenModal(false)}
-        title="새 문제 만들기"
+        onCreateFolder={handleCreateFolder}
+        folderText={folderText}
+        setFolderText={setFolderText}
+        folderDesText={folderDesText}
+        setFolderDesText={setFolderDesText}
+      />
+      <ModalContainer
+        visible={openEditModal}
+        onRequestClose={() => setOpenEditModal(false)}
+        onPressBack={() => setOpenEditModal(false)}
+        title="수정하기"
         type="back"
         btnTitleLeft="취소"
         btnTitleRight="완료"
-        onPressCancle={() => setOpenModal(false)}
-        onPressOk={handleCreateFolder}
+        onPressCancle={() => setOpenEditModal(false)}
+        onPressOk={handleEditFolder}
       >
         <View
           style={{
@@ -124,10 +209,10 @@ export default function ProblemScreen() {
             폴더명
           </Text>
           <ModalTextbox
-            folderText={folderText}
+            folderText={folderEditText}
             placeholder="폴더명을 입력하세요"
-            onChangeFolderText={setFolderText}
-            onPressClear={() => setFolderText("")}
+            onChangeFolderText={setFolderEditText}
+            onPressClear={() => setFolderEditText("")}
           />
         </View>
         <View>
@@ -141,10 +226,10 @@ export default function ProblemScreen() {
             설명
           </Text>
           <ModalTextbox
-            folderText={folderDesText}
+            folderText={folderEditDesText}
             placeholder="문제에 대한 설명을 입력해주세요"
-            onChangeFolderText={setFolderDesText}
-            onPressClear={() => setFolderDesText("")}
+            onChangeFolderText={setFolderEditDesText}
+            onPressClear={() => setFolderEditDesText("")}
           />
         </View>
       </ModalContainer>
@@ -181,7 +266,7 @@ export default function ProblemScreen() {
                   <ProblemList
                     folderName={problem.title}
                     folderSub={problem.description}
-                    deleteList={handleOpenModal}
+                    deleteList={() => handleOpenModal(problem)}
                     onPressSolve={() => {
                       router.push({
                         pathname: "/(tabs)/problem/[folderId]",
@@ -222,7 +307,12 @@ export default function ProblemScreen() {
           <AddBtn onPress={() => setOpenModal(true)} />
         </View>
       </View>
-      <BottomModal ref={bottomModalRef} title="하이" />
+      <BottomModal
+        ref={bottomModalRef}
+        title={selectedFolder?.title ?? "폴더"}
+        onEdit={handelEdit}
+        onDelete={handelDeleteFolder}
+      />
     </SafeAreaView>
   );
 }
