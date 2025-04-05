@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { FlatList, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image } from "react-native";
 import { router } from "expo-router";
@@ -10,6 +10,7 @@ import {
   getUserFolders,
   updateFolder,
   deleteFolder,
+  searchFolderByKeyword,
   Folder,
 } from "@/utils/folders";
 import { auth } from "@/lib/firebaseConfig";
@@ -17,14 +18,15 @@ import { auth } from "@/lib/firebaseConfig";
 import { GrayColors, MainColors } from "@/constants/Colors";
 import { FontStyle } from "@/constants/Font";
 import CUCat from "@/assets/images/CUcat.png";
+import XCat from "@/assets/images/xCat.png";
 
 import Header from "@/components/ui/header";
 import AddBtn from "@/components/ui/button/AddBtn";
-import CreateFolderModal from "@/components/ui/modal/screenModal/CreatFolderModal";
-import ModalContainer from "@/components/ui/modal/ModalContainer";
-import ModalTextbox from "@/components/ui/modal/ModalTextbox";
 import ProblemList from "@/components/ui/list/ProblemList";
 import showToast from "@/utils/showToast";
+
+import CreateFolderModal from "@/components/ui/modal/screenModal/CreatFolderModal";
+import EditFolderModal from "@/components/ui/modal/screenModal/EditFolderModal";
 import BottomModal, {
   BottomModalRef,
 } from "@/components/ui/bottoModal/BottomModal";
@@ -64,6 +66,28 @@ export default function ProblemScreen() {
 
     fetchFolders();
   }, []);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const fetch = async () => {
+      if (isSearchMode && searchText.trim() !== "") {
+        // 🔍 검색 모드
+        const results = await searchFolderByKeyword(
+          searchText.trim(),
+          user.uid
+        );
+        setFolders(results);
+      } else {
+        // 📁 전체 폴더 가져오기
+        const all = await getUserFolders(user.uid);
+        setFolders(all);
+      }
+    };
+
+    fetch();
+  }, [isSearchMode, searchText]);
 
   const handleCreateFolder = async () => {
     try {
@@ -183,57 +207,15 @@ export default function ProblemScreen() {
         folderDesText={folderDesText}
         setFolderDesText={setFolderDesText}
       />
-      <ModalContainer
+      <EditFolderModal
         visible={openEditModal}
         onRequestClose={() => setOpenEditModal(false)}
-        onPressBack={() => setOpenEditModal(false)}
-        title="수정하기"
-        type="back"
-        btnTitleLeft="취소"
-        btnTitleRight="완료"
-        onPressCancle={() => setOpenEditModal(false)}
-        onPressOk={handleEditFolder}
-      >
-        <View
-          style={{
-            marginBottom: 24,
-          }}
-        >
-          <Text
-            style={{
-              ...FontStyle.textBoxLabel,
-              color: GrayColors.black,
-              marginBottom: 8,
-            }}
-          >
-            폴더명
-          </Text>
-          <ModalTextbox
-            folderText={folderEditText}
-            placeholder="폴더명을 입력하세요"
-            onChangeFolderText={setFolderEditText}
-            onPressClear={() => setFolderEditText("")}
-          />
-        </View>
-        <View>
-          <Text
-            style={{
-              ...FontStyle.textBoxLabel,
-              color: GrayColors.black,
-              marginBottom: 8,
-            }}
-          >
-            설명
-          </Text>
-          <ModalTextbox
-            folderText={folderEditDesText}
-            placeholder="문제에 대한 설명을 입력해주세요"
-            onChangeFolderText={setFolderEditDesText}
-            onPressClear={() => setFolderEditDesText("")}
-          />
-        </View>
-      </ModalContainer>
-
+        onEditFolder={handleEditFolder}
+        folderEditText={folderEditText}
+        setFolderEditText={setFolderEditText}
+        folderEditDesText={folderEditDesText}
+        setFolderEditDesText={setFolderEditDesText}
+      />
       <Header
         title="문제"
         rightIcon="search"
@@ -248,60 +230,71 @@ export default function ProblemScreen() {
         onPressClearSearch={() => setSearchText("")}
       />
       <View style={styles.contents}>
-        {folders.length !== 0 ? (
-          <View
-            style={{
-              flex: 1,
-              marginTop: 8,
-            }}
-          >
-            {folders.map((problem, idx) => {
-              return (
-                <View
-                  key={idx}
-                  style={{
-                    marginBottom: 16,
-                  }}
-                >
-                  <ProblemList
-                    folderName={problem.title}
-                    folderSub={problem.description}
-                    deleteList={() => handleOpenModal(problem)}
-                    onPressSolve={() => {
-                      router.push({
-                        pathname: "/(tabs)/problem/[folderId]",
-                        params: { folderId: problem.id, title: problem.title },
-                      });
-                    }}
-                  />
-                </View>
-              );
-            })}
-          </View>
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Image
-              source={CUCat}
-              style={{
-                width: 250,
-                height: 250,
-              }}
-            />
-            <Text style={styles.guideText}>아직 등록된 문제가 없어요.</Text>
-            <Text style={styles.guideText}>
-              + 버튼을 눌러 문제를 추가해주세요!
-            </Text>
-          </View>
-        )}
         <View
           style={{
-            alignItems: "flex-end",
+            flex: 1,
+            marginTop: 8,
+          }}
+        >
+          <FlatList
+            data={folders}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={
+              folders.length === 0
+                ? { flexGrow: 1, justifyContent: "center" }
+                : undefined
+            }
+            renderItem={({ item, index }) => {
+              return (
+                <ProblemList
+                  folderName={item.title}
+                  folderSub={item.description}
+                  deleteList={() => handleOpenModal(item)}
+                  onPressSolve={() => {
+                    router.push({
+                      pathname: "/(tabs)/problem/[folderId]",
+                      params: { folderId: item.id, title: item.title },
+                    });
+                  }}
+                />
+              );
+            }}
+            ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+            ListEmptyComponent={
+              <View
+                style={{
+                  alignItems: "center",
+                }}
+              >
+                <Image
+                  source={isSearchMode ? XCat : CUCat}
+                  style={{
+                    width: 250,
+                    height: 250,
+                  }}
+                />
+                {isSearchMode ? (
+                  <Text style={styles.guideText}>검색 결과가 없어요...</Text>
+                ) : (
+                  <View>
+                    <Text style={styles.guideText}>
+                      아직 등록된 문제가 없어요.
+                    </Text>
+                    <Text style={styles.guideText}>
+                      + 버튼을 눌러 문제를 추가해주세요!
+                    </Text>
+                  </View>
+                )}
+              </View>
+            }
+          />
+        </View>
+        <View
+          style={{
+            position: "absolute",
+            bottom: 16,
+            right: 16,
           }}
         >
           <AddBtn onPress={() => setOpenModal(true)} />
@@ -338,8 +331,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   guideText: {
-    fontSize: 16,
-    fontFamily: "Pretendard-Regular",
+    fontFamily: "Pretendard-Medium",
     color: GrayColors.black,
+    letterSpacing: -0.4,
   },
 });

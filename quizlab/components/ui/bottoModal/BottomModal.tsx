@@ -29,7 +29,7 @@ const BottomModal = (
 ) => {
   const { title, onEdit, onDelete } = props;
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["40%"], []);
+  const snapPoints = useMemo(() => [], []);
   const [visible, setVisible] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -45,7 +45,7 @@ const BottomModal = (
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <View style={styles.overlay} />
+      <View style={styles.overlay} onTouchEnd={() => setVisible(false)} />
       <BottomSheet
         ref={bottomSheetRef}
         index={0}

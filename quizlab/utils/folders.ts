@@ -10,19 +10,24 @@ import {
   query,
   where,
   Timestamp,
+  orderBy,
 } from "firebase/firestore";
+import { generateKeywords } from "@/utils/generateKeywords";
 
 export async function createFolder(
   userId: string,
   title: string,
   description: string
 ): Promise<void> {
+  const keywords = generateKeywords(title);
+
   try {
     const docRef = await addDoc(collection(db, "folders"), {
-      title,
-      description,
-      createdBy: userId,
-      createdAt: serverTimestamp(),
+      title, // 폴더명
+      description, // 폴더 설명
+      createdBy: userId, // 폴더 제작 사용자 명
+      updatedAt: serverTimestamp(), // 제작 시간
+      keywords, // 검색용 키워드
     });
 
     console.log("폴더 생성 완료! ID:", docRef.id);
@@ -43,10 +48,16 @@ export async function updateFolder(
   try {
     const folderRef = doc(db, "folders", folderId);
 
-    await updateDoc(folderRef, {
+    const updatedFields: any = {
       ...updatedData,
-      updatedAt: serverTimestamp(), // 수정 시간 갱신
-    });
+      updatedAt: serverTimestamp(),
+    };
+
+    if (updatedData.title) {
+      updatedFields.keywords = generateKeywords(updatedData.title);
+    }
+
+    await updateDoc(folderRef, updatedFields);
 
     console.log("✏️ 폴더 수정 성공:", folderId);
   } catch (error) {
@@ -68,11 +79,33 @@ export async function deleteFolder(folderId: string): Promise<void> {
 
 // 파일 가져오기
 export async function getUserFolders(userId: string) {
-  const q = query(collection(db, "folders"), where("createdBy", "==", userId));
+  const q = query(
+    collection(db, "folders"),
+    where("createdBy", "==", userId),
+    orderBy("updatedAt", "desc")
+  );
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => ({
     id: doc.id, // 문서 id
+    ...(doc.data() as Omit<Folder, "id">),
+  }));
+}
+
+// 폴더 검색
+export async function searchFolderByKeyword(keyword: string, userId: string) {
+  const folderRef = collection(db, "folders");
+
+  const q = query(
+    folderRef,
+    where("createdBy", "==", userId), // 현재 유저의 폴더만 검색
+    where("keywords", "array-contains", keyword) // 키워드 포함 조건
+  );
+
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
     ...(doc.data() as Omit<Folder, "id">),
   }));
 }
@@ -82,6 +115,6 @@ export type Folder = {
   title: string;
   description: string;
   createdBy: string;
-  createdAt: Timestamp;
-  updatedAt?: Timestamp; // 수정 전에는 없을 수 있으니까 optional
+  updatedAt: Timestamp;
+  keywords: string[];
 };
