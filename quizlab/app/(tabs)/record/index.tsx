@@ -13,11 +13,9 @@ export default function RecordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BottomSheet ref={bottomSheetRef} onChange={handleSheetChanges}>
-        <BottomSheetView style={styles.contentContainer}>
-          <Text>Awesome 🎉</Text>
-        </BottomSheetView>
-      </BottomSheet>
+      <View>
+        <Text>기록</Text>
+      </View>
     </SafeAreaView>
   );
 }

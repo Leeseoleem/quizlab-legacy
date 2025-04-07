@@ -1,10 +1,9 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image } from "react-native";
 import { router } from "expo-router";
-
 import {
   createFolder,
   getUserFolders,
@@ -12,7 +11,7 @@ import {
   deleteFolder,
   searchFolderByKeyword,
   Folder,
-} from "@/utils/folders";
+} from "@/utils/cloud/folders";
 import { auth } from "@/lib/firebaseConfig";
 
 import { GrayColors, MainColors } from "@/constants/Colors";
@@ -44,6 +43,8 @@ export default function ProblemScreen() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null); // 선택된 폴더
 
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+
   useEffect(() => {
     const fetchFolders = async () => {
       const user = auth.currentUser;
@@ -61,6 +62,8 @@ export default function ProblemScreen() {
       } catch (error) {
         console.error("❌ 폴더 불러오기 실패:", error);
         setFolders([]); // 오류 발생 시에도 안전하게 빈 배열로 설정
+      } finally {
+        setIsLoading(false); // 무조건 로딩 끝 처리
       }
     };
 
@@ -236,59 +239,71 @@ export default function ProblemScreen() {
             marginTop: 8,
           }}
         >
-          <FlatList
-            data={folders}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={
-              folders.length === 0
-                ? { flexGrow: 1, justifyContent: "center" }
-                : undefined
-            }
-            renderItem={({ item, index }) => {
-              return (
-                <ProblemList
-                  folderName={item.title}
-                  folderSub={item.description}
-                  deleteList={() => handleOpenModal(item)}
-                  onPressSolve={() => {
-                    router.push({
-                      pathname: "/(tabs)/problem/[folderId]",
-                      params: { folderId: item.id, title: item.title },
-                    });
-                  }}
-                />
-              );
-            }}
-            ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-            ListEmptyComponent={
-              <View
-                style={{
-                  alignItems: "center",
-                }}
-              >
-                <Image
-                  source={isSearchMode ? XCat : CUCat}
+          {isLoading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color={MainColors.primary} />
+            </View>
+          ) : (
+            <FlatList
+              data={folders}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={
+                folders.length === 0
+                  ? { flexGrow: 1, justifyContent: "center" }
+                  : undefined
+              }
+              renderItem={({ item, index }) => {
+                return (
+                  <ProblemList
+                    folderName={item.title}
+                    folderSub={item.description}
+                    deleteList={() => handleOpenModal(item)}
+                    onPressSolve={() => {
+                      router.push({
+                        pathname: "/(tabs)/problem/[folderId]",
+                        params: { folderId: item.id, title: item.title },
+                      });
+                    }}
+                  />
+                );
+              }}
+              ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+              ListEmptyComponent={
+                <View
                   style={{
-                    width: 250,
-                    height: 250,
+                    alignItems: "center",
                   }}
-                />
-                {isSearchMode ? (
-                  <Text style={styles.guideText}>검색 결과가 없어요...</Text>
-                ) : (
-                  <View>
-                    <Text style={styles.guideText}>
-                      아직 등록된 문제가 없어요.
-                    </Text>
-                    <Text style={styles.guideText}>
-                      + 버튼을 눌러 문제를 추가해주세요!
-                    </Text>
-                  </View>
-                )}
-              </View>
-            }
-          />
+                >
+                  <Image
+                    source={isSearchMode ? XCat : CUCat}
+                    style={{
+                      width: 250,
+                      height: 250,
+                    }}
+                  />
+                  {isSearchMode ? (
+                    <Text style={styles.guideText}>검색 결과가 없어요...</Text>
+                  ) : (
+                    <View>
+                      <Text style={styles.guideText}>
+                        아직 등록된 문제가 없어요.
+                      </Text>
+                      <Text style={styles.guideText}>
+                        + 버튼을 눌러 문제를 추가해주세요!
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              }
+            />
+          )}
         </View>
         <View
           style={{
