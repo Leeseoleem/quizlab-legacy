@@ -27,49 +27,116 @@
 - 정확도 기반 개인 학습 리포트 제공
 
 ---
-# 프로젝트 세부 사항
 
-## problems 컬렉션 구조 정리
+```md
+# 📘 QuizLab - 문제 풀이 기능 데이터 구조
 
-### 🔸 공통 필드
-
-| 필드명      | 타입                              | 설명                         |
-|------------|----------------------------------|------------------------------|
-| `type`     | `"descriptive"` \| `"choice"`    | 문제 유형                    |
-| `question` | `string`                         | 문제 내용                    |
-| `folderId` | `string`                         | 어떤 폴더에 속한 문제인지   |
-| `imageUrl?`| `string`                         | 문제 이미지 (선택)          |
-| `createdAt`| `Timestamp`                      | 생성일                       |
-| `updatedAt?`| `Timestamp`                     | 수정일 (선택)               |
+문제 풀이 기능은 Firebase Firestore를 기반으로 구성되며, 다음과 같은 구조와 기능을 중심으로 설계되어 있습니다.
 
 ---
 
-### 🔹 서술형 문제 (`type: "descriptive"`)
+## 📦 Firestore 데이터 구조
 
-| 필드명  | 타입     | 설명         |
-|--------|----------|--------------|
-| `answer` | `string` | 정답 텍스트  |
+### 🔹 `folders` 컬렉션
+문제 폴더 정보를 저장합니다.
+
+```ts
+folders/{folderId} {
+  title: string;          // 폴더 제목
+  description: string;    // 폴더 설명
+  updatedAt: Timestamp;   // 생성 시간(혹은 수정 시간)
+  createdBy: string;      // 생성자(유저) ID
+  keywords: string[];     // 검색용 키워드
+}
+```
 
 ---
 
+### 🔹 `problems` 컬렉션
+문제 데이터를 저장하는 전역 문제 은행입니다. 각 문제는 특정 폴더에 속합니다.
 
-### 🔹 선택형 문제 (`type: "choice"`)
+```ts
+// 공통 부분
+problems/{problemId} {
+  folderId: string;                 // 소속된 폴더 ID
+  type: "descriptive" | "choice";   // 문제 유형
+  question: string;                 // 문제 본문
+  imageUrl?: string;                // 이미지
+  createdAt: Timestamp;             // 생성 시간(혹은 수정 시간)
+}
 
-| 필드명       | 타입                     | 설명                                             |
-|--------------|--------------------------|--------------------------------------------------|
-| `type`       | `"choice"`               | 문제 유형 (선택형 문제)                         |
-| `folderId`   | `string`                 | 문제가 속한 폴더의 ID                            |
-| `question`   | `string`                 | 문제 본문                                        |
-| `options`    | `ChoiceOption[]`         | 보기 목록 (`text`, `isCorrect`, 선택적 해설 포함)|
-| `imageUrl`   | `string \| undefined`    | 문제에 포함된 이미지 URL (선택)                 |
+// 타입 유형- 서술형
+type DescriptiveInput = {
+  answer: string;     // 서술형 정답
+}
 
+// 타입 유형- 선택형
+export type ChoiceInput = {
+  options: ChoiceOption[]; // 선택형 항목
+};
 
-### 🔸 `ChoiceOption` 구조
+// 선택형 항목 세부 요소
+export type ChoiceOption = {
+  text: string;        // 항목 내용
+  isCorrect: boolean;  // 정답 여부(항목 중 한 개만 선택 가능)
+};
 
-| 필드명         | 타입         | 설명                                |
-|----------------|--------------|-------------------------------------|
-| `text`         | `string`     | 보기 내용                            |
-| `isCorrect`    | `boolean`    | 이 보기가 정답인지 여부              |
+```
+
+---
+
+### 🔹 `user_info` 컬렉션
+유저별 정보를 저장합니다.
+
+```ts
+user_info/{userId}
+```
+
+#### └─ `solved_folders` 서브컬렉션
+각 폴더 풀이 세션의 요약 정보를 저장합니다.
+
+```ts
+user_info/{userId}/solved_folders/{sessionId} {
+  folderId: string;              // 풀었던 폴더 ID
+  mode: "timed" | "free" | "review"; // 풀이 모드
+  startedAt: Timestamp;          // 시작 시각
+  endedAt: Timestamp;            // 종료 시각
+  totalCount: number;            // 전체 문제 수
+  correctCount: number;          // 맞힌 문제 수
+  accuracy: number;              // 정답률 (%)
+}
+```
+
+#### └─ `solved_problems` 서브컬렉션
+세션 동안 풀었던 각 문제의 풀이 결과를 저장합니다.
+
+```ts
+user_info/{userId}/solved_folders/{sessionId}/solved_problems/{problemId} {
+  userAnswer: string;       // 사용자의 응답
+  correctAnswer: string;    // 정답
+  isCorrect: boolean;       // 정답 여부
+  solvedAt: Timestamp;      // 제출 시각
+}
+```
+
+---
+
+## 📎 구조 설계 철학
+
+- 전역 `problems` 컬렉션: 문제 은행으로 공유 가능
+- 유저별 `solved_folders`: 세션 단위 저장으로 기록 분석 용이
+- 문제 풀이 결과는 서브컬렉션 `solved_problems`에 분리 저장
+- 모드별 기능 확장을 고려한 구조 (시간 제한 / 자유 / 해설 모드)
+
+---
+
+## ✨ 확장 가능 기능
+
+- 오답노트 저장 기능
+- 문제 다시 풀기 (세션 재생성)
+- 정답률 그래프 시각화
+- 공유된 폴더 다운로드 시 풀이 기록 연결
+
 
 
 
