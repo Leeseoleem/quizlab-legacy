@@ -12,18 +12,20 @@ import Feather from "@expo/vector-icons/Feather";
 type ProblemDetailListProps = {
   questionTitle: string;
   answerTitle: string;
+  onEditProblem: () => void;
 } & PropblemTypeBedgeProps;
 
 export default function ProblemDetailList({
   type,
   questionTitle,
   answerTitle,
+  onEditProblem,
 }: ProblemDetailListProps) {
   return (
     <View style={styles.listContainer}>
       <View style={styles.listHeader}>
         <PropblemTypeBedge type={type} />
-        <TouchableOpacity activeOpacity={0.8}>
+        <TouchableOpacity activeOpacity={0.8} onPress={onEditProblem}>
           <Feather name="more-vertical" size={24} color={GrayColors.black} />
         </TouchableOpacity>
       </View>

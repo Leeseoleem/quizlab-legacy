@@ -1,46 +1,44 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, StyleSheet } from "react-native";
-import {
-  View,
-  Text,
-  FlatList,
-  ScrollView, // 스크롤뷰(탭 바)
-  KeyboardAvoidingView,
-} from "react-native";
-import { useLocalSearchParams, Link, router } from "expo-router";
+import { View, Text, FlatList, ScrollView } from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
 
 import safeParam from "@/utils/params";
 import { GrayColors, MainColors } from "@/constants/Colors";
 
-import { auth } from "@/lib/firebaseConfig";
 import {
   createProblem,
   getUserProblems,
   ProblemInput,
+  updateProblem,
+  deleteProblem,
 } from "@/utils/cloud/problems";
+import { ProblemList } from "@/utils/problemOptionsHandler/problemOptionHandlers";
+import { checkAuthAndRedirect } from "@/utils/firebase/checkUser";
 
 import Header from "@/components/ui/header";
 import ProblemDetailList from "@/components/ui/list/ProblemDetailList";
 import Button from "@/components/ui/button/Button";
 import CreateProblemModal from "@/components/ui/modal/screenModal/CreateProblemModal";
 import { MyType } from "@/components/ui/modal/screenModal/CreateProblemModal";
+import BottomModal, {
+  BottomModalRef,
+} from "@/components/ui/bottoModal/BottomModal";
 
-import ModalContainer from "@/components/ui/modal/ModalContainer";
-import ModalLargeTextbox from "@/components/ui/modal/ModalLargeTextBox";
 import showToast from "@/utils/showToast";
-
-type ProblemList = {
-  id: string;
-  text: string;
-  isCorrect: boolean;
-};
+import {
+  EditDesProblemModal,
+  EditChoiceProblemModal,
+} from "@/components/ui/modal/screenModal/EditProblemModal";
 
 // 고유 id 생성
 const generateId = () => `${Date.now()}-${Math.random()}`;
 
 export default function FolderDetailScreen() {
   const { folderId, title } = useLocalSearchParams();
+
+  const user = checkAuthAndRedirect(); // 유저 로그인 여부 체크
 
   const [isLoading, setIsLoading] = useState(true);
   const [problemListData, setProblemListData] = useState<
@@ -78,13 +76,8 @@ export default function FolderDetailScreen() {
   const [answerText, setAnswerText] = useState("");
 
   // 현재 위치
-  const scrollRef = useRef<ScrollView>(null);
-
-  const scrollViewRef = useRef<ScrollView>(null); // ref 생성
-
-  const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  };
+  const scrollRef = useRef<ScrollView>(null); // tab 화면
+  const scrollViewRef = useRef<ScrollView>(null); // 선택형 문제 생성
 
   // 선택형
   const [options, setOptions] = useState<ProblemList[]>([
@@ -92,73 +85,9 @@ export default function FolderDetailScreen() {
     { id: generateId(), text: "", isCorrect: false },
   ]);
 
-  // 선택형 문제 추가 함수
-  const addOption = () => {
-    if (options.length >= 5) {
-      showToast("최대 5개까지 추가할 수 있습니다");
-      return;
-    }
-    const newOption = {
-      id: generateId(), // 고유 id 부여
-      text: "", // 초기값은 빈 문자열
-      isCorrect: false,
-    };
-    setOptions((prev) => [...prev, newOption]);
-    scrollToBottom();
-  };
-
-  useEffect(() => {
-    console.log(options);
-  }, [options]);
-
-  // 선택형 문제 삭제 함수
-  const removeOption = (id: string) => {
-    if (options.length <= 2) {
-      showToast("최소 2개의 답변이 필요합니다");
-      return;
-    }
-    setOptions((prev) => prev.filter((opt) => opt.id !== id));
-  };
-
-  // 문제 내용 수정 함수
-  const handleTextChange = (id: string, newText: string) => {
-    setOptions((prev) =>
-      prev.map((opt) => {
-        const next = opt.id === id ? { ...opt, text: newText } : opt;
-        return next;
-      })
-    );
-  };
-
-  // 정답 문제 선택 함수
-  const checkAnswer = (id: string) => {
-    setOptions((prev) => {
-      const alreadySelected = prev.some((opt) => opt.isCorrect);
-      const targetOption = prev.find((opt) => opt.id === id);
-
-      // 1. 이미 정답이 선택되어 있고
-      // 2. 지금 누른 게 정답이 아니면 → 아무것도 안 함
-      if (alreadySelected && !targetOption?.isCorrect) {
-        showToast("이미 정답이 선택되었습니다");
-        return prev;
-      }
-
-      // 아니면 toggle 가능
-      return prev.map((opt) =>
-        opt.id === id ? { ...opt, isCorrect: !opt.isCorrect } : opt
-      );
-    });
-  };
-
   // 문제 생성
   const handelCreateProblem = async () => {
-    const user = auth.currentUser;
-
-    if (!user) {
-      showToast("로그인이 만료되었습니다");
-      router.replace("/(auth)/login");
-      return;
-    }
+    if (!user) return;
 
     try {
       if (type === "descriptive") {
@@ -177,8 +106,8 @@ export default function FolderDetailScreen() {
           return; // 저장 막기
         }
 
-        const hasBlankText = options.some((opt) => opt.text.trim() !== "");
-        if (!hasBlankText || problemText.trim() === "") {
+        const hasBlankText = options.some((opt) => opt.text.trim() === "");
+        if (hasBlankText || problemText.trim() === "") {
           showToast("내용이 모두 작성되지 않았습니다");
           return; // 저장 막기
         }
@@ -187,7 +116,7 @@ export default function FolderDetailScreen() {
           type: type,
           folderId: folderId as string,
           question: problemText,
-          options: options,
+          options: options.map(({ text, isCorrect }) => ({ text, isCorrect })),
         };
         await createProblem(problem);
       }
@@ -212,6 +141,150 @@ export default function FolderDetailScreen() {
     setType("descriptive");
   };
 
+  // 문제 수정-삭제
+  const bottomModalRef = useRef<BottomModalRef>(null);
+
+  const [selectProblem, setSelectProblem] = useState<
+    ProblemInput & { id: string }
+  >();
+  // 서술형 문제 모달
+  const [openEditDesModal, setOpenEditDesModal] = useState(false);
+  // 선택형 문제 모달
+  const [openEditChoiceModal, setOpenEditChoiceModal] = useState(false);
+  const [editProblemText, setEditProblemText] = useState("");
+  const [editAnswerText, setEditAnswerText] = useState("");
+
+  const [EditOptions, setEditOptions] = useState<ProblemList[]>([]);
+
+  const handleOpenModal = (problem: ProblemInput & { id: string }) => {
+    bottomModalRef.current?.open();
+    setEditList(problem);
+  };
+
+  const setEditList = (problem: ProblemInput & { id: string }) => {
+    setSelectProblem(problem); // 현재 선택한 폴더 정보 저장
+    setEditProblemText(problem.question); // 문제 저장
+    if (problem.type === "descriptive") {
+      setType("descriptive"); // 타입- 서술형
+      setEditAnswerText(problem.answer); // 정답
+    } else if (problem.type === "choice") {
+      setType("choice");
+      console.log(problem.options);
+      setEditOptions(
+        problem.options.map(({ text, isCorrect }) => ({
+          id: generateId(),
+          text,
+          isCorrect,
+        }))
+      ); // 정답 리스트
+    }
+  };
+
+  // 수정하기 버튼
+  const handelEdit = () => {
+    bottomModalRef.current?.close();
+
+    setTimeout(() => {
+      if (selectProblem?.type === "descriptive") {
+        setOpenEditDesModal(true);
+      } else if (selectProblem?.type === "choice") {
+        setOpenEditChoiceModal(true);
+      }
+    }, 300); // BottomSheet 애니메이션 종료 시간 고려
+  };
+
+  // 서술형 문제 수정 함수
+  const handleEditDes = async () => {
+    setType("descriptive"); // 타입- 서술형
+
+    if (!user) return;
+
+    if (!selectProblem?.id) {
+      showToast("다시 선택해주세요");
+      handleEditProblem();
+      return;
+    }
+
+    try {
+      const updatedData = {
+        question: editProblemText,
+        answer: editAnswerText,
+      };
+      await updateProblem(selectProblem?.id, updatedData);
+
+      await fetchProblems();
+      handleEditProblem();
+    } catch (e) {
+      showToast("수정이 완료되지 않았습니다");
+    }
+  };
+
+  // 선택형 문제 수정 함수
+  const handleEditChoice = async () => {
+    setType("choice"); // 타입- 서술형
+
+    if (!user) return;
+
+    if (!selectProblem?.id) {
+      showToast("다시 선택해주세요");
+      handleEditProblem();
+      return;
+    }
+
+    try {
+      const updatedData = {
+        question: editProblemText,
+        options: EditOptions.map(({ text, isCorrect }) => ({
+          text,
+          isCorrect,
+        })),
+      };
+      await updateProblem(selectProblem?.id, updatedData);
+
+      await fetchProblems();
+      handleEditProblem();
+
+      showToast("문제가 수정되었습니다");
+    } catch (e) {
+      showToast("수정이 완료되지 않았습니다");
+    }
+  };
+
+  // 수정 초기화
+  const handleEditProblem = () => {
+    setEditProblemText("");
+    if (selectProblem?.type === "descriptive") {
+      setAnswerText("");
+      setOpenEditDesModal(false);
+    } else if (selectProblem?.type === "choice") {
+      setOpenEditChoiceModal(false);
+    }
+    setSelectProblem(undefined);
+    setType("descriptive");
+  };
+
+  const handelDeleteFolder = async () => {
+    try {
+      if (!user) return;
+
+      if (!selectProblem?.id) {
+        showToast("다시 선택해주세요");
+        handleEditProblem();
+        return;
+      }
+
+      await deleteProblem(selectProblem.id);
+
+      bottomModalRef.current?.close();
+      showToast("문제가 삭제되었습니다");
+
+      await fetchProblems();
+      handleEditProblem();
+    } catch (e) {
+      showToast("오류가 발생했습니다");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <CreateProblemModal
@@ -227,14 +300,37 @@ export default function FolderDetailScreen() {
         answerText={answerText}
         setAnswerText={setAnswerText}
         // 선택형 영역
-        onAddProblem={addOption}
         option={options}
-        handleTextChange={handleTextChange}
-        checkAnswer={checkAnswer}
-        onRemove={removeOption}
+        setOptions={setOptions}
         scrollListRef={scrollViewRef}
       />
-
+      <EditDesProblemModal
+        visible={openEditDesModal}
+        onRequestClose={() => {
+          setOpenEditDesModal(false);
+          handleEditProblem();
+        }}
+        onEditDes={() => handleEditDes()}
+        editProblemText={editProblemText}
+        setEditProblemText={setEditProblemText}
+        editAnswerText={editAnswerText}
+        setEditAnswerText={setEditAnswerText}
+      />
+      <EditChoiceProblemModal
+        visible={openEditChoiceModal}
+        onRequestClose={() => {
+          setOpenEditChoiceModal(false);
+          handleEditProblem();
+        }}
+        onEditChoice={() => {
+          handleEditChoice();
+        }}
+        problemText={editProblemText}
+        setProblemText={setEditProblemText}
+        option={EditOptions}
+        setOptions={setEditOptions}
+        scrollListRef={scrollViewRef}
+      />
       <Header
         title={safeParam(title)}
         showBack={true}
@@ -275,6 +371,7 @@ export default function FolderDetailScreen() {
                           .map((opt) => opt.text)
                           .join("")
                   }
+                  onEditProblem={() => handleOpenModal(item)}
                 />
               </View>
             )}
@@ -318,6 +415,12 @@ export default function FolderDetailScreen() {
           </View>
         </View>
       </View>
+      <BottomModal
+        ref={bottomModalRef}
+        title={"문제 수정"}
+        onEdit={handelEdit}
+        onDelete={handelDeleteFolder}
+      />
     </SafeAreaView>
   );
 }

@@ -15,7 +15,6 @@ import {
 import { auth } from "@/lib/firebaseConfig";
 
 import { GrayColors, MainColors } from "@/constants/Colors";
-import { FontStyle } from "@/constants/Font";
 import CUCat from "@/assets/images/CUcat.png";
 import XCat from "@/assets/images/xCat.png";
 
@@ -23,6 +22,7 @@ import Header from "@/components/ui/header";
 import AddBtn from "@/components/ui/button/AddBtn";
 import ProblemList from "@/components/ui/list/ProblemList";
 import showToast from "@/utils/showToast";
+import { checkAuthAndRedirect } from "@/utils/firebase/checkUser";
 
 import CreateFolderModal from "@/components/ui/modal/screenModal/CreatFolderModal";
 import EditFolderModal from "@/components/ui/modal/screenModal/EditFolderModal";
@@ -31,6 +31,7 @@ import BottomModal, {
 } from "@/components/ui/bottoModal/BottomModal";
 
 export default function ProblemScreen() {
+  const user = checkAuthAndRedirect(); // 유저 로그인 여부 체크
   // 헤더 검색창
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -47,7 +48,6 @@ export default function ProblemScreen() {
 
   useEffect(() => {
     const fetchFolders = async () => {
-      const user = auth.currentUser;
       if (!user) return;
 
       try {
@@ -71,7 +71,6 @@ export default function ProblemScreen() {
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
     if (!user) return;
 
     const fetch = async () => {
@@ -94,13 +93,8 @@ export default function ProblemScreen() {
 
   const handleCreateFolder = async () => {
     try {
-      const user = auth.currentUser; // 현재 사용중인 유저 정보
+      if (!user) return;
 
-      if (!user) {
-        showToast("로그인이 만료되었습니다");
-        router.replace("/(auth)/login");
-        return;
-      }
       await createFolder(user.uid, folderText, folderDesText);
       showToast("폴더가 생성되었습니다");
 
@@ -137,13 +131,7 @@ export default function ProblemScreen() {
 
   const handleEditFolder = async () => {
     try {
-      const user = auth.currentUser; // 현재 사용중인 유저 정보
-
-      if (!user) {
-        showToast("로그인이 만료되었습니다");
-        router.replace("/(auth)/login");
-        return;
-      }
+      if (!user) return;
 
       if (!selectedFolder?.id) {
         showToast("다시 선택해주세요");
@@ -166,19 +154,16 @@ export default function ProblemScreen() {
       setFolderEditText("");
       setFolderEditDesText("");
     } catch (e) {
-      showToast("수정에 실패하였습니다");
+      showToast("수정이 완료되지 않았습니다");
     }
   };
 
-  const handelDeleteFolder = async () => {
-    try {
-      const user = auth.currentUser; // 현재 사용중인 유저 정보
+  const [isDeleting, setIsDeleting] = useState(false);
 
-      if (!user) {
-        showToast("로그인이 만료되었습니다");
-        router.replace("/(auth)/login");
-        return;
-      }
+  const handelDeleteFolder = async () => {
+    setIsDeleting(true);
+    try {
+      if (!user) return;
 
       if (!selectedFolder?.id) {
         showToast("다시 선택해주세요");
@@ -196,8 +181,16 @@ export default function ProblemScreen() {
       setSelectedFolder(null);
     } catch (e) {
       showToast("오류가 발생했습니다");
+    } finally {
+      setIsDeleting(false); // ✅ 삭제 완료
     }
   };
+
+  if (isDeleting) {
+    <View style={{ alignItems: "center" }}>
+      <ActivityIndicator size="large" color={MainColors.primary} />
+    </View>;
+  }
 
   return (
     <SafeAreaView style={styles.container}>

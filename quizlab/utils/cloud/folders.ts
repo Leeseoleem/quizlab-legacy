@@ -66,10 +66,26 @@ export async function updateFolder(
   }
 }
 
+// 폴더 삭제하기
 export async function deleteFolder(folderId: string): Promise<void> {
   try {
+    // 선택된 폴더에 해당하는 문제 찾기
+    const problemsQuery = query(
+      collection(db, "problems"),
+      where("folderId", "==", folderId)
+    );
+
+    // 문제 전체 삭제
+    const problemSnapshot = await getDocs(problemsQuery);
+
+    const deletePromises = problemSnapshot.docs.map((doc) =>
+      deleteDoc(doc.ref)
+    );
+    await Promise.all(deletePromises);
+
     const folderRef = doc(db, "folders", folderId);
     await deleteDoc(folderRef);
+
     console.log("🗑️ 폴더 삭제 완료:", folderId);
   } catch (error) {
     console.error("❌ 폴더 삭제 중 오류:", error);

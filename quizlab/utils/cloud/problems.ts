@@ -3,10 +3,10 @@ import {
   collection,
   addDoc,
   getDocs,
+  updateDoc,
   deleteDoc,
   serverTimestamp,
   doc,
-  updateDoc,
   query,
   where,
   Timestamp,
@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 
 // 타입 변수- 서술형
-type DescriptiveInput = {
+export type DescriptiveInput = {
   type: "descriptive";
   folderId: string;
   question: string;
@@ -23,7 +23,7 @@ type DescriptiveInput = {
 };
 
 // 타입 변수- 선택형
-type ChoiceInput = {
+export type ChoiceInput = {
   type: "choice";
   folderId: string;
   question: string;
@@ -32,7 +32,7 @@ type ChoiceInput = {
 };
 
 // 선택형 문제
-type ChoiceOption = {
+export type ChoiceOption = {
   text: string;
   isCorrect: boolean;
 };
@@ -52,6 +52,40 @@ export async function createProblem(problem: ProblemInput): Promise<string> {
     return docRef.id;
   } catch (error) {
     console.error("❌ 문제 추가 실패:", error);
+    throw error;
+  }
+}
+
+// 문제 수정하기
+export async function updateProblem(
+  problemId: string,
+  updatedData: Partial<DescriptiveInput> | Partial<ChoiceInput>
+): Promise<void> {
+  try {
+    const problemRef = doc(db, "problems", problemId);
+
+    const updatedFields = {
+      ...updatedData,
+      createdAt: serverTimestamp(), // 최신화된 시간으로 갱신
+    };
+
+    await updateDoc(problemRef, updatedFields);
+
+    console.log("✅ 문제 수정 성공:", problemId);
+  } catch (error) {
+    console.error("❌ 문제 수정 중 오류 발생:", error);
+    throw error;
+  }
+}
+
+// 문제 삭제하기
+export async function deleteProblem(problemId: string) {
+  try {
+    const problemRef = doc(db, "problems", problemId);
+    await deleteDoc(problemRef);
+    console.log("🗑️ 문제 삭제 완료:", problemId);
+  } catch (error) {
+    console.error("❌ 문제 삭제 중 오류:", error);
     throw error;
   }
 }

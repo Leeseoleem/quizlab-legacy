@@ -1,19 +1,17 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  ScrollView,
-} from "react-native";
-import { StyleSheet, Platform } from "react-native";
-import { useRef } from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { MainColors, GrayColors } from "@/constants/Colors";
-import { FontStyle } from "@/constants/Font";
 import Feather from "@expo/vector-icons/Feather";
 
 import ModalLargeTextbox from "../../ModalLargeTextBox";
 import { OptionInput } from "../../OptionInput";
+import {
+  handleAddOption,
+  handleOptionTextChange,
+  handleCheckAnswer,
+  handleRemoveOption,
+} from "@/utils/problemOptionsHandler/problemOptionHandlers";
 
 type ProblemList = {
   id: string;
@@ -24,29 +22,23 @@ type ProblemList = {
 type SecondRouteProps = {
   problemText: string;
   setProblemText: React.Dispatch<React.SetStateAction<string>>;
-  onAddProblem: () => void;
   option: ProblemList[];
-  handleTextChange: (id: string, text: string) => void;
-  checkAnswer: (id: string) => void;
-  onRemove: (id: string) => void;
+  setOptions: React.Dispatch<React.SetStateAction<ProblemList[]>>;
   scrollListRef: React.RefObject<ScrollView>;
 };
 
 const SecondRoute = ({
   problemText,
   setProblemText,
-  onAddProblem,
   option,
-  handleTextChange,
-  checkAnswer,
-  onRemove,
+  setOptions,
   scrollListRef,
 }: SecondRouteProps) => {
+  const scrollToBottom = () => {
+    scrollListRef.current?.scrollToEnd({ animated: true });
+  };
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={tabStyles.container}
-    >
+    <View style={tabStyles.container}>
       <View>
         <ModalLargeTextbox
           label="문제"
@@ -67,9 +59,11 @@ const SecondRoute = ({
               id={opt.id}
               text={opt.text}
               isCorrect={opt.isCorrect}
-              handleTextChange={handleTextChange}
-              checkAnswer={() => checkAnswer(opt.id)}
-              onRemove={() => onRemove(opt.id)}
+              handleTextChange={(id, text) =>
+                handleOptionTextChange(id, text, setOptions)
+              }
+              checkAnswer={() => handleCheckAnswer(opt.id, option, setOptions)}
+              onRemove={() => handleRemoveOption(opt.id, option, setOptions)}
             />
           </View>
         ))}
@@ -77,21 +71,19 @@ const SecondRoute = ({
       <View>
         <TouchableOpacity
           style={tabStyles.addBtn}
-          onPress={onAddProblem}
+          onPress={() => handleAddOption(option, setOptions, scrollToBottom)}
           activeOpacity={0.8}
         >
           <Feather name="plus" size={20} color={GrayColors.black} />
           <Text style={tabStyles.btnTitle}>문제 추가하기</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const tabStyles = StyleSheet.create({
-  container: {
-    paddingTop: 24,
-  },
+  container: {},
   addBtn: {
     height: 46,
     flexDirection: "row",

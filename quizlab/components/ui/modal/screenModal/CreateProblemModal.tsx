@@ -7,7 +7,7 @@ import {
   NativeScrollEvent,
 } from "react-native";
 
-import ModalLargeTextbox from "../ModalLargeTextBox";
+import { FirstRoute, FirstRouteProps } from "./tabScreen/FirstRoute";
 import { SecondRoute, SecondRouteProps } from "./tabScreen/SecondRoute";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -39,12 +39,9 @@ export default function CreateProblemModal({
   setProblemText,
   answerText,
   setAnswerText,
-  onAddProblem,
   // 선택형
   option,
-  handleTextChange,
-  checkAnswer,
-  onRemove,
+  setOptions,
   scrollListRef,
 }: CreateProblemModalProps & FirstRouteProps & SecondRouteProps) {
   // 탭 버튼 클릭 시 실행
@@ -141,14 +138,7 @@ export default function CreateProblemModal({
             flexDirection: "row",
           }} // 내부 정렬
         >
-          <View
-            style={[
-              styles.tabPage,
-              {
-                width: TAB_WIDTH,
-              },
-            ]}
-          >
+          <View style={styles.tabPage}>
             <FirstRoute
               problemText={problemText}
               setProblemText={setProblemText}
@@ -156,15 +146,12 @@ export default function CreateProblemModal({
               setAnswerText={setAnswerText}
             />
           </View>
-          <View style={[styles.tabPage, { width: TAB_WIDTH }]}>
+          <View style={styles.tabPage}>
             <SecondRoute
               problemText={problemText}
               setProblemText={setProblemText}
-              onAddProblem={onAddProblem}
               option={option}
-              handleTextChange={handleTextChange}
-              checkAnswer={checkAnswer}
-              onRemove={onRemove}
+              setOptions={setOptions}
               scrollListRef={scrollListRef}
             />
           </View>
@@ -173,40 +160,6 @@ export default function CreateProblemModal({
     </ModalContainer>
   );
 }
-
-type FirstRouteProps = {
-  problemText: string;
-  setProblemText: React.Dispatch<React.SetStateAction<string>>;
-  answerText: string;
-  setAnswerText: React.Dispatch<React.SetStateAction<string>>;
-};
-
-const FirstRoute = ({
-  problemText,
-  setProblemText,
-  answerText,
-  setAnswerText,
-}: FirstRouteProps) => (
-  <View style={tabStyles.contanier}>
-    <ModalLargeTextbox
-      label="문제"
-      placeholder="문제를 입력하세요"
-      text={problemText}
-      onChangetText={setProblemText}
-    />
-    <View
-      style={{
-        height: 16,
-      }}
-    />
-    <ModalLargeTextbox
-      label="정답"
-      placeholder="정답을 입력하세요"
-      text={answerText}
-      onChangetText={setAnswerText}
-    />
-  </View>
-);
 
 const styles = StyleSheet.create({
   scrollContianer: {
@@ -229,26 +182,8 @@ const styles = StyleSheet.create({
     fontFamily: "Pretendard-Medium",
     fontSize: 12,
   },
-  tabPage: {},
-});
-
-const tabStyles = StyleSheet.create({
-  contanier: {
+  tabPage: {
+    width: TAB_WIDTH,
     paddingTop: 24,
-  },
-  addBtn: {
-    height: 46,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: GrayColors.gray20,
-  },
-  btnTitle: {
-    marginLeft: 4,
-    fontFamily: "Pretendard-Medium",
-    fontSize: 12,
-    color: GrayColors.black,
   },
 });
