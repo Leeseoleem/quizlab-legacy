@@ -31,6 +31,8 @@ import {
   EditDesProblemModal,
   EditChoiceProblemModal,
 } from "@/components/ui/modal/screenModal/EditProblemModal";
+import SelectModeModal from "@/components/ui/modal/screenModal/SelectModeModal";
+import SettingTimeModal from "@/components/ui/modal/screenModal/SettingTimeModal";
 
 // 고유 id 생성
 const generateId = () => `${Date.now()}-${Math.random()}`;
@@ -285,6 +287,19 @@ export default function FolderDetailScreen() {
     }
   };
 
+  // 문제 풀이 모드 선택
+  const [openSelectMode, setOpenSelectMode] = useState(false);
+
+  // 시간 모드: 시간 선택
+  const [openTimed, setOpenTimed] = useState(false);
+
+  // 시간 인덱스
+  const [hour, setHour] = useState(0);
+  const [minute, setMinute] = useState(0);
+
+  const hourFlatListRef = useRef<FlatList>(null);
+  const minuteFlatList = useRef<FlatList>(null);
+
   return (
     <SafeAreaView style={styles.container}>
       <CreateProblemModal
@@ -330,6 +345,35 @@ export default function FolderDetailScreen() {
         option={EditOptions}
         setOptions={setEditOptions}
         scrollListRef={scrollViewRef}
+      />
+      <SelectModeModal
+        visible={openSelectMode}
+        onRequestClose={() => setOpenSelectMode(false)}
+        onTimed={() => {
+          setOpenSelectMode(false);
+          setTimeout(() => {
+            setOpenTimed(true);
+          }, 50);
+        }}
+        onFree={() => {}}
+        onReview={() => {}}
+      />
+      <SettingTimeModal
+        visible={openTimed}
+        onRequestClose={() => setOpenTimed(false)}
+        onPressExist={() => {
+          setOpenTimed(false);
+          setOpenSelectMode(true);
+        }}
+        onStart={() => {
+          console.log(hour, " 시간", minute, " 분");
+        }}
+        selectHourIndex={hour}
+        hourFlatListRef={hourFlatListRef}
+        onHourChange={(index) => setHour(index)}
+        selectMinutesIndex={minute}
+        minuteFlatList={minuteFlatList}
+        onMinutesChange={(index) => setMinute(index)}
       />
       <Header
         title={safeParam(title)}
@@ -409,7 +453,7 @@ export default function FolderDetailScreen() {
               type="default"
               btnTitle="문제 풀기"
               onPress={() => {
-                console.log("항");
+                setOpenSelectMode(true);
               }}
             />
           </View>
