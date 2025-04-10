@@ -351,9 +351,7 @@ export default function FolderDetailScreen() {
         onRequestClose={() => setOpenSelectMode(false)}
         onTimed={() => {
           setOpenSelectMode(false);
-          setTimeout(() => {
-            setOpenTimed(true);
-          }, 50);
+          setOpenTimed(true);
         }}
         onFree={() => {}}
         onReview={() => {}}
@@ -367,6 +365,15 @@ export default function FolderDetailScreen() {
         }}
         onStart={() => {
           console.log(hour, " 시간", minute, " 분");
+          router.push({
+            pathname: `/(solve)/timed/${folderId}`,
+            params: {
+              folderId: folderId,
+              mode: "timed",
+              hour: String(hour), // 예: "1"
+              minute: String(minute), // 예: "30"
+            },
+          });
         }}
         selectHourIndex={hour}
         hourFlatListRef={hourFlatListRef}

@@ -1,12 +1,19 @@
-import { useEffect } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 
 import { GrayColors, MainColors } from "@/constants/Colors";
 import { FontStyle } from "@/constants/Font";
 import ModalContainer from "../ModalContainer";
+import AnimatedAlert from "../../AnimatedAlert";
 
 import { hours, minutes } from "@/utils/timeData";
-import { router } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
 
 type SettingTimeProps = {
   visible: boolean;
@@ -33,6 +40,8 @@ export default function SettingTimeModal({
   selectMinutesIndex,
   minuteFlatList,
 }: SettingTimeProps) {
+  const [alertText, setAlertText] = useState(false);
+
   return (
     <ModalContainer
       visible={visible}
@@ -46,15 +55,34 @@ export default function SettingTimeModal({
       onPressOk={onStart}
     >
       <View>
-        <Text style={styles.title}>풀이 시간을 설정해주세요</Text>
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "center",
-            padding: 24,
-            marginTop: 12,
           }}
         >
+          <AnimatedAlert
+            visible={alertText}
+            onFinish={() => setAlertText(false)}
+            top={-60}
+            right={0}
+            message={
+              "시간 제한은 최소 1분부터\n최대 2시간 59분까지 설정할 수 있습니다."
+            }
+          />
+          <Text style={styles.title}>풀이 시간을 설정해주세요</Text>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={{
+              marginLeft: 4,
+            }}
+            onPress={() => {
+              setAlertText(!alertText);
+            }}
+          >
+            <Feather name="alert-circle" size={14} color={GrayColors.grayHax} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.timePickerContainer}>
           <View
             style={{
               flex: 1,
@@ -166,6 +194,23 @@ const styles = StyleSheet.create({
     ...FontStyle.textBoxLabel,
     color: GrayColors.black,
     marginBottom: 8,
+  },
+  alertTextView: {
+    position: "absolute",
+    padding: 12,
+    backgroundColor: GrayColors.gray20,
+    borderWidth: 1,
+    borderColor: GrayColors.grayHax,
+    borderRadius: 8,
+    top: -60,
+    right: 0,
+    zIndex: 50,
+  },
+  timePickerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    padding: 24,
+    marginTop: 12,
   },
 });
 

@@ -1,21 +1,13 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+
+import Header from "@/components/ui/header";
 
 export default function RecordScreen() {
-  const bottomSheetRef = useRef<BottomSheet>(null);
-
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
-
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        <Text>기록</Text>
-      </View>
+      <Header title="기록" />
     </SafeAreaView>
   );
 }
@@ -23,7 +15,6 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "grey",
   },
   contentContainer: {
     flex: 1,
