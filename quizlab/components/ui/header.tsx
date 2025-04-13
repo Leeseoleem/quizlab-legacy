@@ -1,5 +1,12 @@
 import React from "react";
-import { StyleSheet, View, Text, TextInput } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  StyleProp,
+  TextStyle,
+} from "react-native";
 import { TouchableOpacity } from "react-native";
 
 import { GestureResponderEvent, ViewStyle } from "react-native";
@@ -15,6 +22,7 @@ type HeaderProps = {
   rightIcon?: "search" | "edit" | "menu" | "time";
   clockColor?: string;
   timeText?: string;
+  timetextStyle?: StyleProp<TextStyle>;
   onPressBack?: (event: GestureResponderEvent) => void;
   onPressSearch?: (event: GestureResponderEvent) => void;
   onPressEndearch?: (event: GestureResponderEvent) => void;
@@ -33,6 +41,7 @@ export default function Header({
   rightIcon,
   clockColor,
   timeText,
+  timetextStyle,
   onPressBack,
   onPressSearch,
   onPressEndearch,
@@ -124,7 +133,7 @@ export default function Header({
         {rightIcon === "time" && (
           <View style={styles.timeFram}>
             <Feather name="clock" size={24} color={clockColor} />
-            <Text style={styles.timeText}>{timeText}</Text>
+            <Text style={[styles.timeText, timetextStyle]}>{timeText}</Text>
           </View>
         )}
       </View>

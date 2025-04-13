@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: GrayColors.white,
     borderWidth: 1,
-    borderColor: GrayColors.gray30,
+    borderColor: GrayColors.grayHax,
   },
   typeContents: {
     flexDirection: "row",

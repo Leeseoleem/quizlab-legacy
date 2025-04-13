@@ -9,36 +9,10 @@ import {
   doc,
   query,
   where,
-  Timestamp,
   orderBy,
 } from "firebase/firestore";
 
-// 타입 변수- 서술형
-export type DescriptiveInput = {
-  type: "descriptive";
-  folderId: string;
-  question: string;
-  answer: string;
-  imageUrl?: string;
-};
-
-// 타입 변수- 선택형
-export type ChoiceInput = {
-  type: "choice";
-  folderId: string;
-  question: string;
-  options: ChoiceOption[];
-  imageUrl?: string;
-};
-
-// 선택형 문제
-export type ChoiceOption = {
-  text: string;
-  isCorrect: boolean;
-};
-
-// 타입 변수- 유형 선택
-export type ProblemInput = DescriptiveInput | ChoiceInput;
+import { DescriptiveInput, ChoiceInput, ProblemInput } from "@/types/problems";
 
 // 문제 생성 함수
 export async function createProblem(problem: ProblemInput): Promise<string> {

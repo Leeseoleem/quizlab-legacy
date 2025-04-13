@@ -10,12 +10,12 @@ import { GrayColors, MainColors } from "@/constants/Colors";
 import {
   createProblem,
   getUserProblems,
-  ProblemInput,
   updateProblem,
   deleteProblem,
 } from "@/utils/cloud/problems";
 import { ProblemList } from "@/utils/problemOptionsHandler/problemOptionHandlers";
 import { checkAuthAndRedirect } from "@/utils/firebase/checkUser";
+import { ProblemType, SolvedMode } from "@/types/problems";
 
 import Header from "@/components/ui/header";
 import ProblemDetailList from "@/components/ui/list/ProblemDetailList";
@@ -43,9 +43,7 @@ export default function FolderDetailScreen() {
   const user = checkAuthAndRedirect(); // 유저 로그인 여부 체크
 
   const [isLoading, setIsLoading] = useState(true);
-  const [problemListData, setProblemListData] = useState<
-    (ProblemInput & { id: string })[]
-  >([]);
+  const [problemListData, setProblemListData] = useState<ProblemType[]>([]);
 
   const fetchProblems = useCallback(async () => {
     if (!folderId || typeof folderId !== "string") {
@@ -146,9 +144,7 @@ export default function FolderDetailScreen() {
   // 문제 수정-삭제
   const bottomModalRef = useRef<BottomModalRef>(null);
 
-  const [selectProblem, setSelectProblem] = useState<
-    ProblemInput & { id: string }
-  >();
+  const [selectProblem, setSelectProblem] = useState<ProblemType>();
   // 서술형 문제 모달
   const [openEditDesModal, setOpenEditDesModal] = useState(false);
   // 선택형 문제 모달
@@ -158,12 +154,12 @@ export default function FolderDetailScreen() {
 
   const [EditOptions, setEditOptions] = useState<ProblemList[]>([]);
 
-  const handleOpenModal = (problem: ProblemInput & { id: string }) => {
+  const handleOpenModal = (problem: ProblemType) => {
     bottomModalRef.current?.open();
     setEditList(problem);
   };
 
-  const setEditList = (problem: ProblemInput & { id: string }) => {
+  const setEditList = (problem: ProblemType) => {
     setSelectProblem(problem); // 현재 선택한 폴더 정보 저장
     setEditProblemText(problem.question); // 문제 저장
     if (problem.type === "descriptive") {
@@ -364,11 +360,16 @@ export default function FolderDetailScreen() {
           setOpenSelectMode(true);
         }}
         onStart={() => {
+          if (minute === 0 && hour === 0) {
+            showToast("시간을 설정해주세요");
+            return;
+          }
           console.log(hour, " 시간", minute, " 분");
           router.push({
-            pathname: `/(solve)/timed/${folderId}`,
+            pathname: "/(solve)/timed/[folderId]",
             params: {
-              folderId: folderId,
+              folderId: safeParam(folderId),
+              title: title,
               mode: "timed",
               hour: String(hour), // 예: "1"
               minute: String(minute), // 예: "30"
