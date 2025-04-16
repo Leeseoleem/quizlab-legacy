@@ -102,7 +102,7 @@ export default function FolderDetailScreen() {
         // ✅ 정답 체크: isCorrect가 true인 옵션이 하나도 없다면 막기
         const hasCorrectAnswer = options.some((opt) => opt.isCorrect);
         if (!hasCorrectAnswer) {
-          showToast("정답을 필수 1개 선택해야 합니다");
+          showToast("정답은 필수 1개 선택되어야 합니다");
           return; // 저장 막기
         }
 
@@ -116,7 +116,11 @@ export default function FolderDetailScreen() {
           type: type,
           folderId: folderId as string,
           question: problemText,
-          options: options.map(({ text, isCorrect }) => ({ text, isCorrect })),
+          options: options.map(({ text, isCorrect }) => ({
+            id: generateId(),
+            text,
+            isCorrect,
+          })),
         };
         await createProblem(problem);
       }
@@ -491,6 +495,7 @@ const styles = StyleSheet.create({
     fontFamily: "Pretendard-Medium",
     color: GrayColors.black,
     letterSpacing: -0.4,
+    textAlign: "center",
   },
   bottomContents: {
     width: "100%",

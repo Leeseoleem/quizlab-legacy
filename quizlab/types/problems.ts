@@ -18,6 +18,7 @@ export type ChoiceInput = {
 
 // 객관식 선택지
 export type ChoiceOption = {
+  id: string;
   text: string;
   isCorrect: boolean;
 };

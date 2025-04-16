@@ -1,4 +1,8 @@
 export const FontStyle = {
+  boldTitle: {
+    fontSize: 22,
+    fontFamily: "Pretendard-Bold",
+  },
   title: {
     fontSize: 20,
     fontFamily: "Pretendard-SemiBold",

@@ -3,20 +3,31 @@ import { StyleSheet } from "react-native";
 
 import { FontStyle } from "@/constants/Font";
 import { GrayColors, MainColors } from "@/constants/Colors";
+import { CheckOption } from "@/types/solved";
+
 import ModalLargeTextbox from "../modal/ModalLargeTextBox";
 import PropblemTypeBedge from "../bedge/ProblemTypeBedge";
+import ChoiceSection from "./ChoiceSection";
 
 import Feather from "@expo/vector-icons/Feather";
 
 export type CardProps = {
   type: "descriptive" | "choice";
-  viewType?: "default" | "toggle";
   questionText: string;
-  answerText: string; // 사용자가 입력한 값
-  correctAnswer?: string; // 실제 정답 (toggle 펼치기에 사용)
-  onChangeText: (text: string) => void;
+
+  // 공통
+  correctAnswer?: string;
+  viewType?: "default" | "toggle";
   answerVisible?: boolean;
   setAnswerVisible?: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // 서술형 전용
+  answerText?: string; // 선택형에서는 optionId로 대체됨
+  onChangeText?: (text: string) => void;
+
+  // 선택형 전용
+  options?: CheckOption[]; // ✅ 선택형 옵션 (CheckOption 타입)
+  onSelectOption?: (optionId: string) => void; // ✅ 선택 시 호출
 };
 
 export default function ProblemCard({
@@ -28,6 +39,8 @@ export default function ProblemCard({
   onChangeText,
   answerVisible = false,
   setAnswerVisible,
+  options,
+  onSelectOption,
 }: CardProps) {
   return (
     <View style={cardStyles.cardContainer}>
@@ -40,12 +53,21 @@ export default function ProblemCard({
           width: "100%",
         }}
       >
-        <ModalLargeTextbox
-          label="정답"
-          placeholder="정답을 입력해주세요."
-          text={answerText}
-          onChangetText={onChangeText}
-        />
+        {type === "descriptive" && (
+          <ModalLargeTextbox
+            label="정답"
+            placeholder="정답을 입력해주세요."
+            text={answerText ?? ""}
+            onChangetText={onChangeText!}
+          />
+        )}
+        {type === "choice" && (
+          <ChoiceSection
+            options={options ?? []}
+            selectedId={answerText} // ✅ 현재 선택된 옵션의 id
+            onSelectOption={onSelectOption!} // ✅ 선택 시 호출될 콜백}
+          />
+        )}
       </View>
       {viewType === "toggle" && (
         <View style={{ width: "100%" }}>

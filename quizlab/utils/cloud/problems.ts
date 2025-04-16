@@ -65,11 +65,14 @@ export async function deleteProblem(problemId: string) {
 }
 
 // 파일 가져오기
-export async function getUserProblems(folderId: string) {
+export async function getUserProblems(
+  folderId: string,
+  orderDirection: "asc" | "desc" = "desc"
+) {
   const q = query(
     collection(db, "problems"),
     where("folderId", "==", folderId),
-    orderBy("createdAt", "desc")
+    orderBy("createdAt", orderDirection)
   );
   const snapshot = await getDocs(q);
 

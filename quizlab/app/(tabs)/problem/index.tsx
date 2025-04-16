@@ -12,7 +12,6 @@ import {
   searchFolderByKeyword,
   Folder,
 } from "@/utils/cloud/folders";
-import { auth } from "@/lib/firebaseConfig";
 
 import { GrayColors, MainColors } from "@/constants/Colors";
 import CUCat from "@/assets/images/CUcat.png";
@@ -187,9 +186,11 @@ export default function ProblemScreen() {
   };
 
   if (isDeleting) {
-    <View style={{ alignItems: "center" }}>
-      <ActivityIndicator size="large" color={MainColors.primary} />
-    </View>;
+    return (
+      <View style={{ alignItems: "center" }}>
+        <ActivityIndicator size="large" color={MainColors.primary} />
+      </View>
+    );
   }
 
   return (
@@ -215,7 +216,11 @@ export default function ProblemScreen() {
       <Header
         title="문제"
         rightIcon="search"
-        onPressSearch={() => setIsSearchMode(true)}
+        onPressSearch={() => {
+          if (folders.length === 0) return;
+
+          setIsSearchMode(true);
+        }}
         onPressEndearch={() => {
           setIsSearchMode(false);
           setSearchText("");
@@ -271,6 +276,7 @@ export default function ProblemScreen() {
               ListEmptyComponent={
                 <View
                   style={{
+                    justifyContent: "center",
                     alignItems: "center",
                   }}
                 >
@@ -342,5 +348,6 @@ const styles = StyleSheet.create({
     fontFamily: "Pretendard-Medium",
     color: GrayColors.black,
     letterSpacing: -0.4,
+    textAlign: "center",
   },
 });

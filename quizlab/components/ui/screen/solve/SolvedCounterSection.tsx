@@ -4,8 +4,8 @@ import { FontStyle } from "@/constants/Font";
 import { GrayColors, MainColors } from "@/constants/Colors";
 
 export type SolvedCountProps = {
-  current: string;
-  total: string;
+  current: number;
+  total: number;
 };
 
 export default function SolvedCountSection({
@@ -17,6 +17,7 @@ export default function SolvedCountSection({
       style={{
         flexDirection: "row",
         marginBottom: 24,
+        alignItems: "center",
       }}
     >
       <Text style={styles.problemText}>문제</Text>
@@ -44,7 +45,7 @@ export default function SolvedCountSection({
 
 const styles = StyleSheet.create({
   problemText: {
-    ...FontStyle.subTitle,
+    ...FontStyle.modalTitle,
     color: GrayColors.black,
     marginRight: 6,
   },

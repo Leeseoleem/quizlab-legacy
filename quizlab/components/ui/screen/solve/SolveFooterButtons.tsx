@@ -1,9 +1,13 @@
-import { View, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import ProblemBtn from "../../button/ProblemBtn";
 
+import { GrayColors, MainColors } from "@/constants/Colors";
+import { FontStyle } from "@/constants/Font";
+
 export type SolveFooterButtonsProps = {
-  isFirst: boolean;
-  isLast: boolean;
+  isFirst: boolean; // {currentIndex === 0}
+  isLast: boolean; // {currentIndex === problems.length - 1}
+  isSubmitting: boolean;
   onPrev: () => void;
   onNext: () => void;
   onSubmit: () => void;
@@ -12,11 +16,24 @@ export type SolveFooterButtonsProps = {
 export default function SolveFooterButtons({
   isFirst,
   isLast,
+  isSubmitting,
   onPrev,
   onNext,
   onSubmit,
 }: SolveFooterButtonsProps) {
-  return (
+  return isSubmitting ? (
+    <View style={styles.footer}>
+      <ActivityIndicator size="large" color={MainColors.primary} />
+      <Text
+        style={{
+          ...FontStyle.contentsText,
+          color: GrayColors.black,
+        }}
+      >
+        제출 중
+      </Text>
+    </View>
+  ) : (
     <View style={styles.footer}>
       <ProblemBtn
         type={isFirst ? "prev-non" : "prev"}

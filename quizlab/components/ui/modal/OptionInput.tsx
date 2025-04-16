@@ -1,11 +1,10 @@
 import { StyleSheet } from "react-native";
 import { TouchableOpacity, TextInput, View, Text } from "react-native";
-import { KeyboardAvoidingView } from "react-native";
 
 import { MainColors, GrayColors } from "@/constants/Colors";
-import { FontStyle } from "@/constants/Font";
 
 import Octicons from "@expo/vector-icons/Octicons";
+import Feather from "@expo/vector-icons/Feather";
 
 type OptionInputProps = {
   id: string;
@@ -43,7 +42,6 @@ export const OptionInput = ({
           value={text}
           numberOfLines={1}
           onChangeText={(updatText) => {
-            console.log("🔥 사용자가 입력한 값:", updatText);
             handleTextChange(id, updatText);
           }}
           style={styles.input}
@@ -51,7 +49,7 @@ export const OptionInput = ({
         />
       </View>
       <TouchableOpacity onPress={() => onRemove(id)}>
-        <Text style={styles.remove}>－</Text>
+        <Feather name="minus" size={20} color={GrayColors.black} />
       </TouchableOpacity>
     </View>
   );
@@ -75,5 +73,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: GrayColors.gray20,
   },
-  remove: {},
 });
