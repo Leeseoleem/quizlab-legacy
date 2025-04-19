@@ -27,7 +27,12 @@ export async function submitAndRedirect({
       remainingSeconds,
     });
 
-    router.replace(`/solved/${solvedId}`);
+    if (solvedId) {
+      router.replace({
+        pathname: `/solved/[solvedId]`,
+        params: { solvedId: solvedId, mode: mode }, // Expo Router에서는 params
+      });
+    }
   } catch (err) {
     console.error("❌ 제출 실패:", err);
     showToast("오류가 발생했습니다");

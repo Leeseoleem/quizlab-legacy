@@ -1,5 +1,11 @@
 import { GrayColors, MainColors } from "@/constants/Colors";
-import { StyleSheet, View, Text } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 
 import Feather from "@expo/vector-icons/Feather";
 import Octicons from "@expo/vector-icons/Octicons";
@@ -14,6 +20,9 @@ type AnswerReviewProps = {
   userAnswer: string;
   correctAnswer: string;
   options?: CheckOption[]; // 서술형의 경우
+
+  text: string;
+  onChangetText: (text: string) => void;
 };
 
 export default function AnswerReviewCard({
@@ -23,10 +32,14 @@ export default function AnswerReviewCard({
   userAnswer,
   correctAnswer,
   options,
+
+  text,
+  onChangetText,
 }: AnswerReviewProps) {
   return (
     <View style={styles.contanier}>
       <CorrectBedge isCorrect={isCorrect} />
+
       <View style={styles.padding} />
       <Text style={styles.question}>{question}</Text>
       <View style={styles.padding} />
@@ -57,9 +70,11 @@ export default function AnswerReviewCard({
 
             let bgColor = "transparent"; // 기본: 배경 없음
 
-            if (isAnswer || isCorrectSelected)
+            if (isCorrectSelected)
               bgColor = MainColors.safeSec; // 초록색 (정답 + 선택함)
-            else if (isWrong) bgColor = MainColors.dangerSec; // 빨간색 (오답 + 선택함)
+            else if (isWrong)
+              bgColor = MainColors.dangerSec; // 빨간색 (오답 + 선택함)
+            else if (isAnswer) bgColor = "#FFF3BF";
 
             return (
               <View
@@ -76,8 +91,10 @@ export default function AnswerReviewCard({
                     name="check-circle-fill"
                     size={18}
                     color={
-                      isCorrectSelected || isAnswer
+                      isCorrectSelected
                         ? MainColors.safe
+                        : isAnswer
+                        ? "#FFD43B"
                         : MainColors.danger
                     }
                   />
@@ -95,6 +112,23 @@ export default function AnswerReviewCard({
         </View>
       )}
       <View style={styles.padding} />
+      <View style={styles.padding} />
+      <View>
+        <View>
+          <Text style={styles.label}>오답 노트</Text>
+          <TextInput
+            placeholder="메모를 남겨보세요"
+            style={{
+              ...styles.searchInput,
+              borderColor: text ? MainColors.primary : GrayColors.gray20,
+              borderWidth: text ? 1.5 : 1,
+            }}
+            value={text}
+            onChangeText={onChangetText}
+            multiline={true}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -105,6 +139,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: GrayColors.gray20,
     padding: 16,
+  },
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   padding: {
     height: 24,
@@ -130,6 +169,18 @@ const styles = StyleSheet.create({
     ...FontStyle.contentsText,
     color: GrayColors.black,
     marginLeft: 12,
+  },
+  label: {
+    ...FontStyle.textBoxLabel,
+    color: GrayColors.black,
+    marginBottom: 8,
+  },
+  searchInput: {
+    height: 96,
+    textAlignVertical: "top",
+    padding: 16,
+    borderRadius: 8,
+    fontFamily: "Pretendard-Medium",
   },
 });
 
@@ -164,7 +215,7 @@ const bedgeStyles = StyleSheet.create({
     alignSelf: "flex-start",
     borderRadius: 20,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   title: {
     ...FontStyle.textBoxLabel,
@@ -172,3 +223,11 @@ const bedgeStyles = StyleSheet.create({
     marginLeft: 6,
   },
 });
+
+const SaveBedge = () => {
+  return (
+    <TouchableOpacity>
+      <Feather name="save" size={24} color={GrayColors.gray40} />
+    </TouchableOpacity>
+  );
+};

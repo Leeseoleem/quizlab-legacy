@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -18,11 +18,11 @@ import SolvedCountSection, { SolvedCountProps } from "./SolvedCounterSection";
 type SolveProps = {
   folderId?: string;
   title: string;
-  remainingSeconds: number;
+  remainingSeconds?: number;
 
   mode: SolvedMode;
-  onSubmit: (startedAt: Date) => void;
-  onTimeout?: (startedAt: Date) => void; // ✅ 시간 초과 발생 시 호출
+  onSubmit: () => void;
+  onTimeout?: () => void; // ✅ 시간 초과 발생 시 호출
 } & SolvedCountProps &
   CardProps &
   Omit<SolveFooterButtonsProps, "isSubmitting" | "onSubmit">;
@@ -32,6 +32,7 @@ export default function SolveScreen({
   title,
   mode,
   remainingSeconds,
+
   // 총 문제 수
   current,
   total,
@@ -55,33 +56,20 @@ export default function SolveScreen({
   onSubmit,
   onTimeout,
 }: SolveProps) {
-  const [startedAt, setStartedAt] = useState<Date | null>(null);
-
-  useEffect(() => {
-    if (!startedAt) {
-      setStartedAt(new Date()); // ✅ 첫 마운트 시점 저장
-    }
-  }, []);
-
   const [isSubmitting, setIsSubmitting] = useState(false); // 제출 중 여부
 
-  const handleSubmit = () => {
-    if (!startedAt || isSubmitting) return; // 이미 제출 중이면 막기
-    try {
-      onSubmit(startedAt); // 🔄 실제 저장 처리 (props로 전달된 함수)
-    } catch (error) {
-      console.error("❌ 제출 중 오류:", error);
-      // TODO: Toast 메시지 띄우기 등 추가 가능
-    } finally {
-      setIsSubmitting(false); // 제출 완료 후 로딩 종료
-    }
-  };
-
   useEffect(() => {
-    console.log(remainingSeconds);
-    if (mode === "timed" && remainingSeconds === 0 && startedAt && onTimeout) {
-      onTimeout(startedAt); // ⏰ 시간이 0초 됐을 때 상위로 알림
+    if (
+      mode !== "timed" || // 🔒 타임드 모드가 아니면 패스
+      typeof remainingSeconds !== "number" || // 🔒 undefined 방어
+      remainingSeconds > 0 || // 🔒 0초 아니면 패스
+      !onTimeout // 🔒 핸들러 없으면 패스
+    ) {
+      return;
     }
+
+    // ⏰ 시간이 정확히 0초일 때만 실행
+    onTimeout();
   }, [remainingSeconds]);
 
   return (
@@ -111,11 +99,11 @@ export default function SolveScreen({
             questionText={questionText} // firebase 문제
             answerText={answerText} // 사용자 입력값
             onChangeText={onChangeText}
+            options={options}
+            onSelectOption={onSelectOption}
             setAnswerVisible={setAnswerVisible}
             type={type}
             viewType={viewType}
-            options={options}
-            onSelectOption={onSelectOption}
             correctAnswer={correctAnswer} // 실제 값
           />
         </View>
@@ -126,7 +114,7 @@ export default function SolveScreen({
         isSubmitting={isSubmitting}
         onPrev={onPrev}
         onNext={onNext}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
       />
     </SafeAreaView>
   );

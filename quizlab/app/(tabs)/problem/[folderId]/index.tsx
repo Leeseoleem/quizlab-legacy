@@ -353,8 +353,26 @@ export default function FolderDetailScreen() {
           setOpenSelectMode(false);
           setOpenTimed(true);
         }}
-        onFree={() => {}}
-        onReview={() => {}}
+        onFree={() => {
+          router.push({
+            pathname: "/(solve)/free/[folderId]",
+            params: {
+              folderId: safeParam(folderId),
+              title: title,
+              mode: "free",
+            },
+          });
+        }}
+        onReview={() => {
+          router.push({
+            pathname: "/(solve)/review/[folderId]",
+            params: {
+              folderId: safeParam(folderId),
+              title: title,
+              mode: "free",
+            },
+          });
+        }}
       />
       <SettingTimeModal
         visible={openTimed}

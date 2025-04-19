@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  StyleSheet,
-  View,
-  Text,
-  ActivityIndicator,
-  FlatList,
-} from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { GrayColors } from "@/constants/Colors";
 import { FontStyle } from "@/constants/Font";
 import safeParam from "@/utils/params";
 
-import { SolvedFolderDoc, SolvedProblemDoc } from "@/types/solved";
-import { getSolvedFolder, getSolvedProblems } from "@/utils/cloud/solved";
+import { SolvedFolderDoc, SolvedMode, SolvedProblemDoc } from "@/types/solved";
+import {
+  getSolvedFolder,
+  getSolvedProblems,
+  updateSolvedProblemMemos,
+} from "@/utils/cloud/solved";
 import { auth } from "@/lib/firebaseConfig";
 
 import Header from "@/components/ui/header";
@@ -23,7 +22,7 @@ import TotalCard from "@/components/ui/card/TotalCard";
 import AnswerReviewCard from "@/components/ui/card/AnswerReviewCard";
 
 export default function SolvedScreen() {
-  const { solvedId } = useLocalSearchParams();
+  const { solvedId, mode } = useLocalSearchParams();
   const userId = auth.currentUser?.uid;
 
   const [solvedData, setSolvedData] = useState<SolvedFolderDoc | null>(null);
@@ -36,11 +35,38 @@ export default function SolvedScreen() {
       const problemData = await getSolvedProblems(userId, safeParam(solvedId));
       setSolvedData(data);
       setSolvedProblems(problemData);
-      console.log(problemData);
     };
+    console.log(mode);
 
     fetchData();
   }, [solvedId]);
+
+  const [memoMap, setMemoMap] = useState<Record<string, string>>({});
+  const memoRef = useRef<Record<string, string>>({}); // memoMap 값을 최신 반영
+
+  const handleMemoChange = (problemId: string, text: string) => {
+    setMemoMap((prev) => {
+      const updated = { ...prev, [problemId]: text };
+      memoRef.current = updated;
+      return updated;
+    });
+  };
+
+  // ✅ 화면 이탈 시 자동 저장
+  useEffect(() => {
+    return () => {
+      if (!userId || !solvedId) return;
+
+      (async () => {
+        console.log("📦 저장 전 memoRef:", memoRef.current);
+        await updateSolvedProblemMemos(
+          userId,
+          safeParam(solvedId),
+          memoRef.current
+        );
+      })();
+    };
+  }, []);
 
   if (!solvedData || !solvedProblems) {
     return <ActivityIndicator />;
@@ -48,54 +74,47 @@ export default function SolvedScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.contentWrapper}>
-        <FlatList
-          data={solvedProblems}
-          keyExtractor={(item) => item.problemId}
-          renderItem={({ item }) => (
-            <View
-              style={{
-                padding: 16,
-              }}
-            >
-              <AnswerReviewCard
-                type={item.type}
-                isCorrect={item.isCorrect}
-                question={item.question}
-                userAnswer={item.userAnswer}
-                correctAnswer={item.correctAnswer}
-                options={item.options}
-              />
-            </View>
-          )}
-          ListHeaderComponent={
-            <>
-              <Header title="풀이 결과" />
-              <View style={styles.innerPadding}>
-                <View
-                  style={{
-                    height: 24,
-                  }}
-                />
-                <TotalCard
-                  date={solvedData.date}
-                  mode="timed"
-                  duration={solvedData.duration}
-                  correctCount={solvedData.correctCount}
-                  totalCount={solvedData.totalCount}
-                  accuracy={solvedData.accuracy}
-                />
-                <Text style={styles.solvedTitle}>풀이 내역</Text>
-              </View>
-            </>
-          }
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
+      {/* 스크롤 가능한 영역 */}
+      <KeyboardAwareScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={250}
+      >
+        <Header title="풀이 결과" />
+        <View style={styles.innerPadding}>
+          <View style={{ height: 24 }} />
+          <TotalCard
+            date={solvedData.date}
+            mode={mode as SolvedMode}
+            duration={solvedData.duration}
+            correctCount={solvedData.correctCount}
+            totalCount={solvedData.totalCount}
+            accuracy={solvedData.accuracy}
+          />
+          <Text style={styles.solvedTitle}>풀이 내역</Text>
+        </View>
 
-      {/* ✅ 하단 고정 버튼 영역 */}
-      <View style={styles.bottomContents}>
+        {/* 문제 리스트 */}
+        {solvedProblems.map((item) => (
+          <View key={item.problemId} style={{ padding: 16 }}>
+            <AnswerReviewCard
+              type={item.type}
+              isCorrect={item.isCorrect}
+              question={item.question}
+              userAnswer={item.userAnswer}
+              correctAnswer={item.correctAnswer}
+              options={item.options}
+              text={memoMap[item.problemId] || ""}
+              onChangetText={(text) => handleMemoChange(item.problemId, text)}
+            />
+          </View>
+        ))}
+      </KeyboardAwareScrollView>
+
+      {/* 하단 고정 버튼 */}
+      <View style={styles.bottomFixed}>
         <Button
           type="other"
           onPress={() => router.replace("/(tabs)/record")}
@@ -116,28 +135,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  contentWrapper: {
-    flex: 1, // FlatList는 스크롤 영역
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
   innerPadding: {
     paddingHorizontal: 16,
-  },
-  listContent: {
-    paddingBottom: 24,
   },
   solvedTitle: {
     ...FontStyle.title,
     color: GrayColors.black,
     marginTop: 60,
   },
-  problemItem: {
-    ...FontStyle.contentsText,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: GrayColors.gray10,
-  },
-  bottomContents: {
+  bottomFixed: {
     paddingHorizontal: 16,
     paddingVertical: 20,
   },

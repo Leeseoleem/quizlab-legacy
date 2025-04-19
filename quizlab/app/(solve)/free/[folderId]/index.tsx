@@ -6,7 +6,6 @@ import { getUserProblems } from "@/utils/cloud/problems";
 import { ProblemType } from "@/types/problems";
 import { SolvedMode, SolvedProblemDoc } from "@/types/solved";
 import safeParam from "@/utils/params";
-import { submitAndRedirect } from "@/utils/submitAndRedirect";
 import {
   updateSolvingAnswer,
   handleSubmit,
@@ -15,43 +14,18 @@ import {
 
 import SolveScreen from "@/components/ui/screen/solve/SolveScreen";
 import { BackPressModal } from "@/components/ui/modal/screenModal/BackPressModal";
-import showToast from "@/utils/showToast";
 import { IncompleteAnswersModal } from "@/components/ui/modal/screenModal/IncompleteAnswersModal";
 import GetProblemScreen from "@/components/ui/screen/solve/GetProblemScreen";
 
-export default function TimedScreen() {
-  const { folderId, title, mode, hour, minute } = useLocalSearchParams();
-  const [settingTimer, setSettingTimer] = useState<number>(0);
-  const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
-
-  useEffect(() => {
-    const h = Number(hour ?? "0");
-    const m = Number(minute ?? "0");
-    const totalSeconds = h * 3600 + m * 60;
-    setRemainingSeconds(totalSeconds);
-    setSettingTimer(totalSeconds);
-  }, []);
-
-  useEffect(() => {
-    if (mode !== "timed") return;
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (!prev) return 0;
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [remainingSeconds]);
+export default function FreeScreen() {
+  const { folderId, title, mode } = useLocalSearchParams();
 
   const [visible, setVisible] = useState(false);
   const handelBackPress = () => {
     setVisible(true);
     return true;
   };
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -118,27 +92,6 @@ export default function TimedScreen() {
     setSolving(updateSolvingAnswer(solving, currentIndex, "", optionId));
   };
 
-  // 시간 초과 함수
-  const handleTimeout = () => {
-    const updatedSolving = solving.map((item, i) => {
-      if (i !== currentIndex) return item;
-      if (item.type === "descriptive") {
-        return { ...item, index: currentIndex, userAnswer: answerText };
-      }
-      return item;
-    });
-
-    showToast("시간이 초과되었습니다");
-
-    submitAndRedirect({
-      folderId: safeParam(folderId),
-      mode: "timed",
-      solving: updatedSolving,
-      startedAt,
-      remainingSeconds: settingTimer,
-    });
-  };
-
   if (!current) return <GetProblemScreen />;
 
   return (
@@ -155,22 +108,20 @@ export default function TimedScreen() {
           const forceData = {
             startedAt: startedAt,
             folderId: safeParam(folderId),
-            mode: "timed" as SolvedMode,
+            mode: "free" as SolvedMode,
             solving: solving,
-            remainingSeconds: settingTimer,
           };
           forceSubmit(forceData);
         }}
       />
       <SolveScreen
         title={safeParam(title)}
-        remainingSeconds={remainingSeconds}
-        mode="timed"
+        mode="free"
         current={currentIndex + 1}
         total={problems.length}
         type={current.type}
         questionText={current.question}
-        // ✨ 문제 유형에 따른 분기
+        // 문제 유형에 따른 분기
         answerText={
           current.type === "descriptive"
             ? answerText
@@ -208,14 +159,12 @@ export default function TimedScreen() {
             answerText: answerText,
             setIncompleteModal: setIncompleteModal,
             folderId: safeParam(folderId),
-            mode: "timed" as SolvedMode,
-            remainingSeconds: settingTimer,
+            mode: "free" as SolvedMode,
           };
           setTimeout(() => {
             handleSubmit(args);
           }, 0);
         }}
-        onTimeout={handleTimeout}
       />
     </View>
   );

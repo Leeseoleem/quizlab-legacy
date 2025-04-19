@@ -9,6 +9,7 @@ import {
   getDocs,
   Timestamp,
   orderBy,
+  writeBatch,
 } from "firebase/firestore";
 import { SolvedMode, SolvedFolderDoc, SolvedProblemDoc } from "@/types/solved";
 
@@ -149,3 +150,49 @@ export async function getSolvedProblems(
     return [];
   }
 }
+
+/**
+ * solved_folders/{solvedId}/problems/{problemId}의 memoText를 일괄 저장합니다
+ */
+export const updateSolvedProblemMemos = async (
+  userId: string,
+  solvedId: string,
+  memoMap: Record<string, string>
+) => {
+  const batch = writeBatch(db);
+
+  const updates = Object.entries(memoMap);
+  if (updates.length === 0) {
+    console.log("⚠️ 저장할 메모가 없습니다");
+    return;
+  }
+
+  updates.forEach(([problemId, text]) => {
+    const trimmed = text.trim();
+    if (trimmed.length === 0) return; // ✨ 빈 값은 제외 (원한다면 삭제 처리도 가능)
+
+    const ref = doc(
+      db,
+      "user_info",
+      userId,
+      "solved_folders",
+      solvedId,
+      "problems",
+      problemId
+    );
+
+    console.log("📝 저장 대상:", problemId, "내용:", trimmed);
+
+    batch.update(ref, {
+      memoText: trimmed,
+      hasMemo: true,
+    });
+  });
+
+  try {
+    await batch.commit();
+    console.log("✅ 오답 노트 자동 저장 완료");
+  } catch (e) {
+    console.error("❌ Firestore 저장 실패:", e);
+  }
+};
