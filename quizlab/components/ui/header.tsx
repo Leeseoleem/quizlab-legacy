@@ -18,6 +18,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 type HeaderProps = {
   title: string;
+  style?: StyleProp<ViewStyle>;
   showBack?: boolean;
   rightIcon?: "search" | "edit" | "menu" | "time";
   clockColor?: string;
@@ -37,6 +38,7 @@ type HeaderProps = {
 
 export default function Header({
   title,
+  style,
   showBack,
   rightIcon,
   clockColor,
@@ -54,7 +56,7 @@ export default function Header({
   onPressClearSearch,
 }: HeaderProps) {
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, style]}>
       <View style={styles.left}>
         {showBack && (
           <TouchableOpacity

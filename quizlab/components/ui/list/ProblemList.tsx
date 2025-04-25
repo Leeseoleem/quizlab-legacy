@@ -8,7 +8,7 @@ import { FontStyle } from "@/constants/Font";
 
 type ProblemListProps = {
   folderName: string;
-  folderSub: string;
+  folderSub?: string;
   onPressSolve: () => void;
   deleteList?: () => void;
 };
@@ -31,7 +31,7 @@ export default function ProblemList({
         </View>
         <View style={styles.contentsContainer}>
           <Text style={styles.folderName}>{folderName}</Text>
-          <Text style={styles.folderSub}>{folderSub}</Text>
+          {folderSub && <Text style={styles.folderSub}>{folderSub}</Text>}
         </View>
       </View>
       <View

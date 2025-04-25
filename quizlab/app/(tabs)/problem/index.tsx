@@ -91,9 +91,12 @@ export default function ProblemScreen() {
   }, [isSearchMode, searchText]);
 
   const handleCreateFolder = async () => {
+    if (!user) return;
     try {
-      if (!user) return;
-
+      if (folderText === "") {
+        showToast("폴더 이름을 작성해주세요");
+        return;
+      }
       await createFolder(user.uid, folderText, folderDesText);
       showToast("폴더가 생성되었습니다");
 

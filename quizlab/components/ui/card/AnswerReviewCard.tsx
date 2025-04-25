@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { GrayColors, MainColors } from "@/constants/Colors";
 import {
   StyleSheet,
@@ -21,6 +22,7 @@ type AnswerReviewProps = {
   correctAnswer: string;
   options?: CheckOption[]; // 서술형의 경우
 
+  hasMemo?: boolean;
   text: string;
   onChangetText: (text: string) => void;
 };
@@ -35,7 +37,9 @@ export default function AnswerReviewCard({
 
   text,
   onChangetText,
+  hasMemo,
 }: AnswerReviewProps) {
+  const [isEditing, setIsEditing] = useState(false);
   return (
     <View style={styles.contanier}>
       <CorrectBedge isCorrect={isCorrect} />
@@ -46,8 +50,8 @@ export default function AnswerReviewCard({
       {type === "descriptive" && (
         <View>
           <View>
-            <Text style={styles.answerLabl}>작성한 답</Text>
-            <Text style={styles.answer}>{userAnswer}</Text>
+            <Text style={styles.answerLabl}>정답</Text>
+            <Text style={styles.answer}>{correctAnswer}</Text>
           </View>
           <View
             style={{
@@ -55,8 +59,17 @@ export default function AnswerReviewCard({
             }}
           />
           <View>
-            <Text style={styles.answerLabl}>정답</Text>
-            <Text style={styles.answer}>{correctAnswer}</Text>
+            <Text style={styles.answerLabl}>작성한 답</Text>
+            <Text
+              style={[
+                styles.answer,
+                {
+                  color: isCorrect ? GrayColors.black : MainColors.primary,
+                },
+              ]}
+            >
+              {userAnswer || "작성된 내용이 없습니다"}
+            </Text>
           </View>
         </View>
       )}
@@ -116,13 +129,22 @@ export default function AnswerReviewCard({
       <View>
         <View>
           <Text style={styles.label}>오답 노트</Text>
+
           <TextInput
             placeholder="메모를 남겨보세요"
-            style={{
-              ...styles.searchInput,
-              borderColor: text ? MainColors.primary : GrayColors.gray20,
-              borderWidth: text ? 1.5 : 1,
-            }}
+            onFocus={() => setIsEditing(true)}
+            style={
+              hasMemo && !isEditing
+                ? {
+                    ...styles.searchInput,
+                    ...styles.hasMemo,
+                  }
+                : {
+                    ...styles.searchInput,
+                    borderColor: text ? MainColors.primary : GrayColors.gray20,
+                    borderWidth: text ? 1.5 : 1,
+                  }
+            }
             value={text}
             onChangeText={onChangetText}
             multiline={true}
@@ -136,8 +158,7 @@ export default function AnswerReviewCard({
 const styles = StyleSheet.create({
   contanier: {
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: GrayColors.gray20,
+    backgroundColor: GrayColors.white,
     padding: 16,
   },
   header: {
@@ -181,6 +202,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     fontFamily: "Pretendard-Medium",
+  },
+  hasMemo: {
+    backgroundColor: GrayColors.gray10,
+    borderColor: GrayColors.gray20,
+    borderWidth: 1,
   },
 });
 

@@ -14,7 +14,7 @@ export const GrayColors = {
   gray30: "#7A7672",
   grayHax: "#B1ADA7",
   gray20: "#E5E2DB",
-  gray10: "#F5F5ED",
+  gray10: "#F5F5F5",
   white: "#FFFFFF",
   black: "#0A0908",
 };

@@ -512,7 +512,6 @@ const styles = StyleSheet.create({
   guideText: {
     fontFamily: "Pretendard-Medium",
     color: GrayColors.black,
-    letterSpacing: -0.4,
     textAlign: "center",
   },
   bottomContents: {

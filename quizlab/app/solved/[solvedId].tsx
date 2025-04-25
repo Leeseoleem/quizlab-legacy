@@ -76,13 +76,19 @@ export default function SolvedScreen() {
     <SafeAreaView style={styles.container}>
       {/* 스크롤 가능한 영역 */}
       <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={250}
       >
-        <Header title="풀이 결과" />
+        <Header
+          title="풀이 결과"
+          style={{
+            backgroundColor: GrayColors.white,
+          }}
+        />
         <View style={styles.innerPadding}>
           <View style={{ height: 24 }} />
           <TotalCard
@@ -98,7 +104,7 @@ export default function SolvedScreen() {
 
         {/* 문제 리스트 */}
         {solvedProblems.map((item) => (
-          <View key={item.problemId} style={{ padding: 16 }}>
+          <View key={item.problemId} style={styles.solvedList}>
             <AnswerReviewCard
               type={item.type}
               isCorrect={item.isCorrect}
@@ -137,17 +143,23 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
+    backgroundColor: GrayColors.gray10,
   },
   scrollContent: {
     paddingBottom: 24,
   },
   innerPadding: {
     paddingHorizontal: 16,
+    backgroundColor: GrayColors.white,
   },
   solvedTitle: {
     ...FontStyle.title,
     color: GrayColors.black,
     marginTop: 60,
+    marginBottom: 24,
+  },
+  solvedList: {
+    padding: 16,
   },
   bottomFixed: {
     paddingHorizontal: 16,

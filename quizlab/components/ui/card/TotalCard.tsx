@@ -9,7 +9,7 @@ import { FontStyle } from "@/constants/Font";
 import { SolvedMode } from "@/types/solved";
 import { formatDuration } from "@/utils/formatDuration";
 
-type TotalProps = {
+export type TotalProps = {
   date: string;
   mode: SolvedMode;
   duration: number;

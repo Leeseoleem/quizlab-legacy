@@ -7,9 +7,11 @@ import {
   setDoc,
   getDoc,
   getDocs,
+  deleteDoc,
   Timestamp,
   orderBy,
   writeBatch,
+  where,
 } from "firebase/firestore";
 import { SolvedMode, SolvedFolderDoc, SolvedProblemDoc } from "@/types/solved";
 
@@ -123,6 +125,64 @@ export async function getSolvedFolder(
   } catch (error) {
     console.error("❌ 풀이 기록 가져오기 실패:", error);
     return null;
+  }
+}
+
+// 특정 문제 폴더 가져오기 함수
+export async function getSolvedFoldersByFolderId(folderId?: string) {
+  const user = auth.currentUser;
+  if (!user) {
+    console.log("❌ 유저 없음, 중단됨");
+    return [];
+  }
+
+  const userId = user.uid;
+  const baseRef = collection(db, `user_info/${userId}/solved_folders`);
+
+  try {
+    const q = folderId
+      ? query(
+          baseRef,
+          where("folderId", "==", folderId),
+          orderBy("submittedAt", "desc")
+        )
+      : query(baseRef, orderBy("submittedAt", "desc")); // ✅ 정렬 필드를 통일
+
+    const snapshot = await getDocs(q);
+    console.log("📦 쿼리된 문서 수:", snapshot.size);
+
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as SolvedFolderDoc),
+    }));
+  } catch (error) {
+    console.error("❌ Firestore 쿼리 에러:", error);
+    return [];
+  }
+}
+
+// 폴더 삭제하기
+export async function deleteSolvedFolder(solvedId: string) {
+  const user = auth.currentUser;
+  if (!user) {
+    console.log("❌ 유저 없음, 중단됨");
+    return [];
+  }
+
+  const userId = user.uid;
+  try {
+    const solvedFolderRef = doc(
+      db,
+      "user_info",
+      userId,
+      "solved_folders",
+      solvedId
+    );
+    await deleteDoc(solvedFolderRef);
+    console.log("🗑️ 문제 삭제 완료:", solvedId);
+  } catch (error) {
+    console.error("❌ 문제 삭제 중 오류:", error);
+    throw error;
   }
 }
 

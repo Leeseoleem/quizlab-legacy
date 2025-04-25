@@ -85,3 +85,15 @@ export async function getUserProblems(
     };
   });
 }
+
+// 폴더 여부 확인하기
+export async function checkFolderHasProblems(
+  folderId: string
+): Promise<boolean> {
+  const q = query(
+    collection(db, "problems"),
+    where("folderId", "==", folderId)
+  );
+  const snapshot = await getDocs(q);
+  return !snapshot.empty;
+}
