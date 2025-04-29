@@ -18,6 +18,8 @@ export type SolvedFolderDoc = {
   timeLimit?: number; // 사용자가 설정한 제한 시간: timed 모드 전용
 };
 
+export type SolvedFolderWithId = SolvedFolderDoc & { id: string };
+
 // 객관식 선택지
 export type CheckOption = {
   id: string; // 선택지 고유 ID

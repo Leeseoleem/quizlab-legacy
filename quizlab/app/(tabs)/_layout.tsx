@@ -92,9 +92,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="share"
         options={{
-          title: "공유",
+          title: "통계",
           tabBarIcon: ({ color }) => (
-            <Feather name="share" size={24} color={color} />
+            <Feather name="bar-chart" size={24} color={color} />
           ),
         }}
       />

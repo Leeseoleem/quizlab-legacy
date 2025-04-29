@@ -60,21 +60,11 @@ export default function TotalSummaryCard({
       <View style={totalStyles.contents}>
         <View style={totalStyles.subContents}>
           <TotalList
-            label="맞은 문제"
-            value={count}
-            icon={
-              <FontAwesome
-                name="check-square"
-                size={16}
-                color={MainColors.safe}
-              />
-            }
-          />
-          <TotalList
             label="풀이 모드"
             value={modeName}
             icon={<FontAwesome name="pencil" size={16} color="black" />}
           />
+
           <TotalList
             label="걸린 시간"
             value={formatDuration(duration)}
@@ -83,6 +73,17 @@ export default function TotalSummaryCard({
                 name="clock-o"
                 size={16}
                 color={MainColors.primary}
+              />
+            }
+          />
+          <TotalList
+            label="맞은 문제"
+            value={count}
+            icon={
+              <FontAwesome
+                name="check-square"
+                size={16}
+                color={MainColors.safe}
               />
             }
           />

@@ -12,6 +12,7 @@ import {
   orderBy,
   writeBatch,
   where,
+  limit,
 } from "firebase/firestore";
 import { SolvedMode, SolvedFolderDoc, SolvedProblemDoc } from "@/types/solved";
 
@@ -126,6 +127,24 @@ export async function getSolvedFolder(
     console.error("❌ 풀이 기록 가져오기 실패:", error);
     return null;
   }
+}
+
+// 최신 폴더 가져오기 함수
+export async function getRecentSolvedFolders() {
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const userId = user.uid;
+  const solvedRef = collection(db, `user_info/${userId}/solved_folders`);
+
+  const q = query(solvedRef, orderBy("submittedAt", "desc"), limit(10));
+
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as SolvedFolderDoc),
+  }));
 }
 
 // 특정 문제 폴더 가져오기 함수

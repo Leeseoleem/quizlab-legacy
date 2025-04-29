@@ -480,7 +480,7 @@ export default function FolderDetailScreen() {
             }}
           >
             <Button
-              type="default"
+              type={problemListData.length ? "default" : "non"}
               btnTitle="문제 풀기"
               onPress={() => {
                 setOpenSelectMode(true);

@@ -20,7 +20,7 @@ import {
 } from "@/utils/cloud/solved";
 import { SolvedFolderDoc } from "@/types/solved";
 import { handleSolvedTitle } from "@/utils/solve/handleSolvedTitle";
-import { formatSmartDate } from "@/utils/formatDate";
+import { formatDuration } from "@/utils/formatDuration";
 import showToast from "@/utils/showToast";
 
 import Header from "@/components/ui/header";
@@ -32,6 +32,7 @@ import BottomListModal, {
 import { GrayColors, MainColors } from "@/constants/Colors";
 import { FontStyle } from "@/constants/Font";
 import Feather from "@expo/vector-icons/Feather";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router } from "expo-router";
 
 export type SolvedFolder = { id: string } & SolvedFolderDoc;
@@ -140,22 +141,6 @@ export default function RecordScreen() {
         keyExtractor={(data) => data.id}
         renderItem={({ item }) => {
           let percent = item.accuracy / 100;
-          let modeName = "";
-
-          switch (item.mode) {
-            case "timed":
-              modeName = "시간 제한 모드";
-              break;
-            case "free":
-              modeName = "자유 모드";
-              break;
-            case "review":
-              modeName = "해설 모드";
-              break;
-            default:
-              modeName = "기타 모드";
-              break;
-          }
 
           const bgColor =
             percent < 0.3
@@ -165,6 +150,7 @@ export default function RecordScreen() {
               : percent < 0.8
               ? "#FFD43B" // 노랑
               : MainColors.safe; // 초록
+
           return (
             <TouchableOpacity
               style={styles.listContainer}
@@ -184,9 +170,16 @@ export default function RecordScreen() {
               <View style={styles.listHeader}>
                 <View>
                   <View style={styles.titleContent}>
-                    <Text style={styles.listTitle}>
-                      {handleSolvedTitle(folders, item)}
-                    </Text>
+                    <View
+                      style={{
+                        gap: 4,
+                      }}
+                    >
+                      <Text style={styles.date}>{item.date}</Text>
+                      <Text style={styles.listTitle}>
+                        {handleSolvedTitle(folders, item)}
+                      </Text>
+                    </View>
                     <Pressable
                       style={({ pressed }) => [
                         styles.trashLine,
@@ -207,87 +200,100 @@ export default function RecordScreen() {
                       />
                     </Pressable>
                   </View>
+                </View>
+              </View>
 
-                  <View style={{ height: 16 }} />
+              <View
+                style={{
+                  marginTop: 24,
+                  marginBottom: 8,
+                  gap: 12,
+                }}
+              >
+                <View style={styles.count}>
                   <View
-                    style={{
-                      flexGrow: 1,
-                      alignItems: "flex-start",
-                    }}
+                    style={[
+                      styles.flexRow,
+                      {
+                        gap: 8,
+                      },
+                    ]}
                   >
-                    <View style={styles.listOther}>
-                      <Feather
-                        name="calendar"
-                        size={14}
-                        color={GrayColors.gray30}
-                      />
-                      <View style={styles.gap_v} />
-                      <Text style={styles.date}>
-                        {formatSmartDate(item.startedAt)}
-                      </Text>
-                    </View>
-                    <View style={styles.gap_h} />
-                    <View style={styles.listOther}>
-                      {item.mode === "timed" && (
-                        <Feather
-                          name="clock"
-                          size={14}
-                          color={GrayColors.gray30}
-                        />
-                      )}
-                      {item.mode === "free" && (
-                        <Feather
-                          name="play"
-                          size={14}
-                          color={GrayColors.gray30}
-                        />
-                      )}
-                      {item.mode === "review" && (
-                        <Feather
-                          name="edit-3"
-                          size={14}
-                          color={GrayColors.gray30}
-                        />
-                      )}
-                      <View style={styles.gap_v} />
-                      <Text style={styles.modeBadge}>{modeName}</Text>
-                    </View>
+                    <FontAwesome
+                      name="clock-o"
+                      size={18}
+                      color={MainColors.primary}
+                    />
+                    <Text style={styles.countText}>걸린 시간</Text>
+                  </View>
+                  <View style={styles.flexRow}>
+                    <Text style={styles.countText}>
+                      {formatDuration(item.duration)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.count}>
+                  <View
+                    style={[
+                      styles.flexRow,
+                      {
+                        gap: 8,
+                      },
+                    ]}
+                  >
+                    <FontAwesome
+                      name="check-square"
+                      size={16}
+                      color={MainColors.safe}
+                    />
+                    <Text style={styles.countText}>맞은 문제</Text>
+                  </View>
+                  <View style={styles.flexRow}>
+                    <Text style={styles.countText}>{item.correctCount}</Text>
+                    <Text style={styles.countText}> / </Text>
+                    <Text style={styles.countText}>{item.totalCount}</Text>
                   </View>
                 </View>
               </View>
+
               <View
                 style={{
-                  height: 24,
+                  marginVertical: 12,
                 }}
-              />
-              <View style={styles.count}>
-                <Feather
-                  name="check-circle"
-                  size={18}
-                  color={GrayColors.grayHax}
+              >
+                <Progress.Bar
+                  progress={percent}
+                  height={10}
+                  width={width - 64}
+                  color={bgColor}
+                  unfilledColor={GrayColors.gray10}
+                  borderWidth={0}
                 />
-                <View style={styles.gap_v} />
-                <Text style={styles.countText}>{item.correctCount}</Text>
-                <Text style={styles.countText}> / </Text>
-                <Text style={styles.countText}>{item.totalCount}</Text>
               </View>
-              <View style={styles.gap_h} />
-              <Progress.Bar
-                progress={percent}
-                height={10}
-                width={width - 64}
-                color={bgColor}
-                unfilledColor={GrayColors.gray10}
-                borderWidth={0}
-              />
             </TouchableOpacity>
           );
         }}
         contentContainerStyle={{
+          flexGrow: 1,
           backgroundColor: GrayColors.gray10,
           padding: 16, // 전체 패딩
           gap: 16, // 요소 간 간격
         }}
+        ListEmptyComponent={
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Text
+              style={{
+                ...FontStyle.subText,
+                color: GrayColors.black,
+              }}
+            >
+              아직 기록이 없습니다.
+            </Text>
+          </View>
+        }
       />
       <BottomListModal
         ref={modalRef}
@@ -317,6 +323,11 @@ const styles = StyleSheet.create({
   },
   gap_v: {
     width: 8,
+  },
+  flexRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     borderRadius: 10,
@@ -359,6 +370,7 @@ const styles = StyleSheet.create({
   },
   count: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
   countText: {

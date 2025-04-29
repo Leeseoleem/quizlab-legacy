@@ -48,6 +48,7 @@ export default function Button({
       ]}
       activeOpacity={0.8}
       onPress={onPress}
+      disabled={type === "non" && true}
     >
       {type === "default" && (
         <Text

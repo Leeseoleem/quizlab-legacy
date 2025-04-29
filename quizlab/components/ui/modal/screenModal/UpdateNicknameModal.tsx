@@ -48,9 +48,10 @@ export default function UpdateNicknameModal({
         </Text>
         <ModalTextbox
           folderText={folderText}
-          placeholder="닉네임을 입력하세요"
+          placeholder="닉네임을 입력하세요 (최대 12자)"
           onChangeFolderText={onChangeFolderText}
           onPressClear={onPressClear}
+          maxLength={12}
         />
       </View>
     </ModalContainer>

@@ -10,6 +10,7 @@ type ModalTextboxProps = {
   placeholder: string;
   onChangeFolderText: (text: string) => void;
   onPressClear: () => void;
+  maxLength?: number;
 };
 
 export default function ModalTextbox({
@@ -17,6 +18,7 @@ export default function ModalTextbox({
   placeholder,
   onChangeFolderText,
   onPressClear,
+  maxLength,
 }: ModalTextboxProps) {
   return (
     <View style={styles.headerContainer}>
@@ -31,6 +33,7 @@ export default function ModalTextbox({
         onChangeText={onChangeFolderText}
         multiline={false}
         numberOfLines={1}
+        maxLength={maxLength}
       />
       {folderText && (
         <Octicons

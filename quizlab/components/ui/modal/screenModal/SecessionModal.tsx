@@ -27,11 +27,15 @@ export default function SecessionModal({
       btnTitleLeft="취소"
       btnTitleRight="탈퇴"
     >
-      <View>
+      <View
+        style={{
+          marginVertical: 8,
+        }}
+      >
         <Text
           style={{
-            ...FontStyle.subText,
-            color: GrayColors.black,
+            ...FontStyle.contentsText,
+            color: GrayColors.gray40,
           }}
         >
           탈퇴 시 작성하신 내용은 모두 삭제되며 {`\n`}복구되지 않습니다.

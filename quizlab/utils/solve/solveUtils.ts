@@ -1,6 +1,7 @@
 import React from "react";
 import { submitAndRedirect } from "../submitAndRedirect";
 import { SolvedMode, SolvedProblemDoc } from "@/types/solved";
+import { saveTodayLearning } from "../cloud/learning";
 
 // 현재 문제의 사용자 입력 반영
 export function updateSolvingAnswer(
@@ -40,7 +41,7 @@ type SubmitArgs = {
 };
 
 // 문제 제출 함수
-export const handleSubmit = (args: SubmitArgs) => {
+export const handleSubmit = async (args: SubmitArgs) => {
   const {
     startedAt,
     setStartAt,
@@ -73,6 +74,13 @@ export const handleSubmit = (args: SubmitArgs) => {
     return;
   }
 
+  try {
+    await saveTodayLearning(); // ✅ 학습 기록 먼저 저장
+  } catch (error) {
+    console.error("❌ 학습 기록 저장 실패:", error);
+    // 기록 실패해도 퀴즈 제출은 막지 않고 계속 진행
+  }
+
   submitAndRedirect({
     folderId,
     mode,
@@ -91,7 +99,7 @@ type SubmitProps = {
 };
 
 // 강제 제출 함수: 사용자가 모든 문제를 다 풀지 않았더라도 강제로 제출을 실행함
-export const forceSubmit = ({
+export const forceSubmit = async ({
   startedAt,
   folderId,
   mode,
@@ -100,12 +108,19 @@ export const forceSubmit = ({
 }: SubmitProps) => {
   if (!startedAt) return;
 
+  try {
+    await saveTodayLearning(); // ✅ 강제 제출 시에도 학습 기록 남기기
+  } catch (error) {
+    console.error("❌ 학습 기록 저장 실패 (forceSubmit):", error);
+    // 학습 기록 실패해도 제출은 계속 진행
+  }
+
   // 제출 및 페이지 전환 함수 호출
   submitAndRedirect({
-    folderId, // 현재 문제 폴더의 ID
-    mode, // 풀이 모드: 시간 제한 모드
-    solving, // 사용자의 전체 풀이 상태 배열
-    startedAt, // 퀴즈 시작 시간
-    remainingSeconds, // 타이머 제한 시간 (총 초 단위)
+    folderId,
+    mode,
+    solving,
+    startedAt,
+    remainingSeconds,
   });
 };

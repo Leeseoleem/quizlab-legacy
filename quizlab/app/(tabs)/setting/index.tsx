@@ -22,7 +22,6 @@ import { FontStyle } from "@/constants/Font";
 import { auth } from "@/lib/firebaseConfig";
 import { changeNickname } from "@/utils/changeNickname";
 import UpdateNicknameModal from "@/components/ui/modal/screenModal/UpdateNicknameModal";
-import ModalContainer from "@/components/ui/modal/ModalContainer";
 
 export default function SettingScreen() {
   const user = auth.currentUser;
@@ -197,5 +196,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: GrayColors.gray10,
     flexDirection: "row",
+    borderTopWidth: 1,
+    borderColor: GrayColors.gray20,
   },
 });

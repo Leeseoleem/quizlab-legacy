@@ -30,16 +30,18 @@ export default function BtnList({
       onPress={onPress}
     >
       <Text style={[textColorStyle, FontStyle.contentsText]}>{text}</Text>
-      <Feather name="chevron-right" size={24} color={GrayColors.black} />
+      <Feather name="chevron-right" size={24} color={GrayColors.grayHax} />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   btnContainer: {
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   contents: {
     padding: 16,

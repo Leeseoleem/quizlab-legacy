@@ -6,7 +6,7 @@ import { FontStyle } from "@/constants/Font";
 import { GrayColors, MainColors } from "@/constants/Colors";
 
 export type ModalBtnProps = {
-  btnType?: "default" | "cancle";
+  btnType?: "default" | "cancle" | "line";
   title: string;
   onPressOk?: () => void;
   onPressCancle?: () => void;
