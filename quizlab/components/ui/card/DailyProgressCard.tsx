@@ -11,6 +11,8 @@ import XCircle from "@/assets/icons/yet.png";
 import { TotalLearningStats } from "@/utils/cloud/learning";
 import { formatToHM } from "@/utils/formatToHM";
 
+import LearnContainer from "./LearnContainer";
+
 type DailyProgressType = {
   isTodayLearned: boolean; // 학습 여부
   currentStreak: number; // 연속 학습
@@ -116,52 +118,18 @@ export default function DailyProgressCard({
             },
           ]}
         >
-          <View style={styles.todayLearnContainer}>
-            <View
-              style={{
-                gap: 4,
-              }}
-            >
-              <Text
-                style={[
-                  styles.subDesTitle,
-                  {
-                    color: GrayColors.gray30,
-                  },
-                ]}
-              >
-                총 학습 시간
-              </Text>
-              <Text style={styles.title}>
-                {formatToHM(stats.totalDuration)}
-              </Text>
-            </View>
-            <View style={styles.iconCircle}>
-              <Feather name="clock" size={24} color={MainColors.primary} />
-            </View>
-          </View>
-          <View style={styles.todayLearnContainer}>
-            <View
-              style={{
-                gap: 4,
-              }}
-            >
-              <Text
-                style={[
-                  styles.subDesTitle,
-                  {
-                    color: GrayColors.gray30,
-                  },
-                ]}
-              >
-                푼 문제 수
-              </Text>
-              <Text style={styles.title}>{stats.totalSolvedProblems}개</Text>
-            </View>
-            <View style={styles.iconCircle}>
+          <LearnContainer
+            keyTitle="총 학습 시간"
+            value={formatToHM(stats.totalDuration)}
+            icon={<Feather name="clock" size={24} color={MainColors.primary} />}
+          />
+          <LearnContainer
+            keyTitle="푼 문제 수"
+            value={`${stats.totalSolvedProblems}개`}
+            icon={
               <Feather name="edit-3" size={24} color={MainColors.primary} />
-            </View>
-          </View>
+            }
+          />
         </View>
       </View>
     </View>
@@ -194,7 +162,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: GrayColors.gray20,
-    paddingVertical: 16,
+    paddingVertical: 24,
     paddingHorizontal: 20,
   },
   checkCircle: {
@@ -213,7 +181,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: GrayColors.gray20,
-    padding: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
