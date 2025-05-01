@@ -1,6 +1,7 @@
+import { useRef, useCallback } from "react";
+import { useFocusEffect, router } from "expo-router";
 import { StyleSheet } from "react-native";
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
-import { router } from "expo-router";
 
 import { FontStyle } from "@/constants/Font";
 import { GrayColors, MainColors } from "@/constants/Colors";
@@ -23,6 +24,15 @@ export default function RecentSolvedFolderList({ recentFolders }: RecentProps) {
     if (percent >= 30) return "#FF8A3D"; // 주황
     return MainColors.danger; // 빨강
   };
+
+  const flatListRef = useRef<FlatList>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }, [])
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -37,6 +47,7 @@ export default function RecentSolvedFolderList({ recentFolders }: RecentProps) {
         </TouchableOpacity>
       </View>
       <FlatList
+        ref={flatListRef}
         data={recentFolders || []}
         keyExtractor={(item) => item.id}
         horizontal // 👈 가로 스크롤!

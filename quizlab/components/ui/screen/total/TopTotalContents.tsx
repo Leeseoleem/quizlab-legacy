@@ -40,11 +40,6 @@ export default function LearningStatusCard() {
     useCallback(() => {
       fetchStreakInfo();
       fetchLearningRecord();
-      console.log("스크린이 포커스되었습니다.");
-
-      return () => {
-        console.log("스크린이 블러되었습니다.");
-      };
     }, [])
   );
 
@@ -81,7 +76,6 @@ export default function LearningStatusCard() {
       </View>
       <View style={styles.learningStatusBar}>
         {learningRecord?.recordList.map((record, idx) => {
-          console.log(record.day, record.status);
           return (
             <View key={record.day}>
               <CheckDay

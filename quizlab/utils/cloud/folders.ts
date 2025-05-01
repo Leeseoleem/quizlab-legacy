@@ -12,6 +12,7 @@ import {
   Timestamp,
   orderBy,
 } from "firebase/firestore";
+import { auth } from "@/lib/firebaseConfig";
 import { generateKeywords } from "@/utils/generateKeywords";
 
 export async function createFolder(
@@ -134,3 +135,28 @@ export type Folder = {
   updatedAt: Timestamp;
   keywords: string[];
 };
+
+export type FolderDoc = {
+  id: string;
+  title: string;
+};
+
+// 폴더 간략화
+export async function getAllUserFolders(): Promise<FolderDoc[]> {
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const userId = user.uid;
+
+  const q = query(
+    collection(db, "folders"),
+    where("createdBy", "==", userId),
+    orderBy("updatedAt", "desc")
+  );
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    title: doc.data().title,
+  }));
+}

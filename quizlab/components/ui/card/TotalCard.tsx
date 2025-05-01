@@ -18,6 +18,12 @@ export type TotalProps = {
   accuracy: number;
 };
 
+export const getColorByAccuracy = (percent: number) => {
+  if (percent >= 70) return MainColors.safe; // 초록
+  if (percent >= 30) return "#FF8A3D"; // 주황
+  return MainColors.danger; // 빨강
+};
+
 export default function TotalCard({
   date,
   mode,
@@ -41,12 +47,6 @@ export default function TotalCard({
         break;
     }
   }, [mode]);
-
-  const getColorByAccuracy = (percent: number) => {
-    if (percent >= 70) return MainColors.safe; // 초록
-    if (percent >= 30) return "#FF8A3D"; // 주황
-    return MainColors.danger; // 빨강
-  };
 
   return (
     <View style={totalStyles.totalContainer}>
