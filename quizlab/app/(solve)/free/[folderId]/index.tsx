@@ -11,6 +11,7 @@ import {
   handleSubmit,
   forceSubmit,
 } from "@/utils/solve/solveUtils";
+import { saveTodayLearning } from "@/utils/cloud/learning";
 
 import SolveScreen from "@/components/ui/screen/solve/SolveScreen";
 import { BackPressModal } from "@/components/ui/modal/screenModal/BackPressModal";

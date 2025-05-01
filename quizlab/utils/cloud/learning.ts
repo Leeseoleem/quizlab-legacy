@@ -8,11 +8,13 @@ import {
   collection,
   query,
   where,
+  QuerySnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import { format } from "date-fns"; // 날짜를 원하는 형태의 문자열로 바꿔주는 함수
-import showToast from "../showToast";
+import { SolvedMode } from "@/types/solved";
 import { checkAuthAndRedirect } from "../firebase/checkUser";
-import { router } from "expo-router";
+import { getThisWeekDatesWithDay, WeekDateInfo } from "../date/weekList";
 
 /**
  * 📚 Firestore 구조: user_info
@@ -147,32 +149,70 @@ export async function getUserLearningInfo(): Promise<UserLearningInfo | null> {
   }
 }
 
+// 요일 타입
+export type Weekday = "월" | "화" | "수" | "목" | "금" | "토" | "일";
+
+// 출석 상태
+export type AttendanceStatus = "attended" | "absent" | "upcoming";
+
+// 하루 출석 기록
+export type RecordType = {
+  date: string; // "YYYY-MM-DD"
+  day: Weekday; // "월" ~ "일"
+  status: AttendanceStatus;
+};
+
+// 일주일 출석 기록
+export type UserLearningRecord = {
+  recordList: RecordType[];
+};
+
+export async function getUserLearningRecord(): Promise<UserLearningRecord | null> {
+  const user = checkAuthAndRedirect();
+  if (!user) return null;
+  const userId = user.uid;
+
+  try {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const dateList = getThisWeekDatesWithDay(); // 날짜 + 요일 리스트
+
+    const recordList: RecordType[] = [];
+
+    for (const { date, day } of dateList) {
+      const ref = doc(db, `user_info/${userId}/learning_records/${date}`);
+      const snap = await getDoc(ref);
+
+      let learned = false;
+      let timestamp: Date | undefined = undefined;
+
+      if (snap.exists()) {
+        const data = snap.data();
+        learned = data.learned === true;
+        timestamp = data.timestamp?.toDate();
+      }
+
+      const status: AttendanceStatus =
+        date > todayStr ? "upcoming" : learned ? "attended" : "absent";
+
+      recordList.push({
+        date,
+        day,
+        status,
+      });
+    }
+
+    return { recordList };
+  } catch (error) {
+    console.error("❌ 유저 학습 정보 불러오기 실패:", error);
+    return null;
+  }
+}
+
 // 학습 내역(총 시간, 문제 수) 가져오기
 export type TotalLearningStats = {
   totalDuration: number; // 총 학습 시간 (초)
   totalSolvedProblems: number; // 총 푼 문제 수
 };
-
-// 전체 내역
-export async function getTotalLearningStats(): Promise<TotalLearningStats | null> {
-  const user = auth.currentUser;
-  if (!user) return null;
-
-  const userId = user.uid;
-  const solvedRef = collection(db, `user_info/${userId}/solved_folders`);
-  const snapshot = await getDocs(solvedRef);
-
-  let totalDuration = 0;
-  let totalSolvedProblems = 0;
-
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    totalDuration += data.duration || 0;
-    totalSolvedProblems += data.totalCount || 0;
-  });
-
-  return { totalDuration, totalSolvedProblems };
-}
 
 // 오늘 내역
 export async function getTodayLearningStats(): Promise<TotalLearningStats | null> {
@@ -202,10 +242,86 @@ export async function getTodayLearningStats(): Promise<TotalLearningStats | null
   return { totalDuration, totalSolvedProblems };
 }
 
-// 특정 폴더 내역
+// 📊 반환될 전체 통계 타입 정의
+export type TotalLearningFullStats = {
+  totalDuration: number; // 총 학습 시간 (초)
+  totalSolvedProblems: number; // 총 푼 문제 수
+  totalCorrect: number; // 맞춘 문제 수
+  totalIncorrect: number; // 틀린 문제 수 (계산값)
+  averageAccuracy: number; // 정확도 평균 (%)
+  modeCount: ModeCount; // 모드별 풀이 수
+};
+
+// 🔢 풀이 모드 종류 정의
+export type ModeCount = {
+  timed: number;
+  free: number;
+  review: number;
+};
+
+// 📌 공통 계산 로직 - QuerySnapshot으로부터 통계 계산
+function calculateLearningStatsFromSnapshot(
+  snapshot: QuerySnapshot<DocumentData>
+): TotalLearningFullStats {
+  let totalDuration = 0;
+  let totalSolvedProblems = 0;
+  let totalCorrect = 0;
+  let totalAccuracy = 0;
+  let docCount = 0;
+
+  const modeCount: ModeCount = {
+    timed: 0,
+    free: 0,
+    review: 0,
+  };
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+
+    // 누적 값 계산
+    totalDuration += data.duration || 0;
+    totalSolvedProblems += data.totalCount || 0;
+    totalCorrect += data.correctCount || 0;
+    totalAccuracy += data.accuracy || 0;
+    docCount += 1;
+
+    // 모드별 카운트
+    const mode = data.mode as keyof ModeCount;
+    if (mode in modeCount) {
+      modeCount[mode]++;
+    }
+  });
+
+  // 평균 및 파생 통계 계산
+  const totalIncorrect = totalSolvedProblems - totalCorrect;
+  const averageAccuracy = docCount > 0 ? totalAccuracy / docCount : 0;
+
+  return {
+    totalDuration,
+    totalSolvedProblems,
+    totalCorrect,
+    totalIncorrect,
+    averageAccuracy,
+    modeCount,
+  };
+}
+
+// 🧠 전체 풀이 통계 조회
+export async function getTotalLearningStats(): Promise<TotalLearningFullStats | null> {
+  const user = auth.currentUser;
+  if (!user) return null;
+
+  const userId = user.uid;
+  const solvedRef = collection(db, `user_info/${userId}/solved_folders`);
+  const snapshot = await getDocs(solvedRef);
+
+  return calculateLearningStatsFromSnapshot(snapshot);
+}
+
+// 📁 특정 폴더에 대한 통계 조회
 export async function getFolderLearningStats(
   folderId: string
-): Promise<TotalLearningStats | null> {
+): Promise<TotalLearningFullStats | null> {
   const user = auth.currentUser;
   if (!user) return null;
 
@@ -214,14 +330,5 @@ export async function getFolderLearningStats(
   const q = query(baseRef, where("folderId", "==", folderId));
   const snapshot = await getDocs(q);
 
-  let totalDuration = 0;
-  let totalSolvedProblems = 0;
-
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    totalDuration += data.duration || 0;
-    totalSolvedProblems += data.totalCount || 0;
-  });
-
-  return { totalDuration, totalSolvedProblems };
+  return calculateLearningStatsFromSnapshot(snapshot);
 }

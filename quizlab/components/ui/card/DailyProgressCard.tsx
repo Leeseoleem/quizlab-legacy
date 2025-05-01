@@ -119,7 +119,7 @@ export default function DailyProgressCard({
           ]}
         >
           <LearnContainer
-            keyTitle="총 학습 시간"
+            keyTitle="학습 시간"
             value={formatToHM(stats.totalDuration)}
             icon={<Feather name="clock" size={24} color={MainColors.primary} />}
           />
