@@ -127,7 +127,7 @@ export default function HomeScreen() {
         <View>
           <DailyProgressCard
             isTodayLearned={isTodayLearned}
-            currentStreak={streakInfo?.currentStreak ?? 0}
+            currentStreak={isTodayLearned ? streakInfo?.currentStreak : 0}
             stats={stats}
           />
         </View>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { StyleSheet, ScrollView, View, Text, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 
 import { FontStyle } from "@/constants/Font";
 import { MainColors, GrayColors } from "@/constants/Colors";
@@ -15,6 +15,7 @@ import ProblemTotalList from "@/components/ui/list/ProblemTotalList";
 import {
   TotalLearningFullStats,
   getFolderLearningStats,
+  getTotalLearningStats,
 } from "@/utils/cloud/learning";
 import { getAllUserFolders, FolderDoc } from "@/utils/cloud/folders";
 import { formatDuration } from "@/utils/formatDuration";
@@ -50,9 +51,9 @@ export default function ShareScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchData();
+      setAccuaryTab(true);
+      setModeTab(false);
       return () => {
-        setAccuaryTab(true);
-        setModeTab(false);
         flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
       };
     }, [])
@@ -100,11 +101,19 @@ export default function ShareScreen() {
                 item.stats?.averageAccuracy || 0
               )}%`}
               onPressDetail={() => {
-                // 세부 정보 파일로 이동
+                router.push({
+                  pathname: "/(tabs)/share/[folderId]",
+                  params: { folderId: item.id, title: item.title },
+                });
               }}
             />
           </View>
         )}
+        ListEmptyComponent={
+          <View style={{ padding: 32, alignItems: "center" }}>
+            <Text style={styles.emptyText}>표시할 데이터가 없습니다.</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -122,5 +131,9 @@ const styles = StyleSheet.create({
     color: GrayColors.black,
     marginVertical: 24,
     marginHorizontal: 16,
+  },
+  emptyText: {
+    ...FontStyle.contentsText,
+    color: GrayColors.gray40,
   },
 });

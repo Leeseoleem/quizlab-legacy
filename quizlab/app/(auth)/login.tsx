@@ -21,6 +21,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  useEffect(() => {
+    setEmail("");
+    setPassword("");
+    setShowPassword(false);
+  }, []);
+
   const handleLogin = async () => {
     if (email === "" || password === "") return;
     const result = await loginWithEmail(email.trim(), password.trim());
