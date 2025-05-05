@@ -19,6 +19,7 @@ import {
 } from "@/utils/cloud/learning";
 import { getAllUserFolders, FolderDoc } from "@/utils/cloud/folders";
 import { formatDuration } from "@/utils/formatDuration";
+import { formatToHM } from "@/utils/formatToHM";
 
 type FolderWithStats = FolderDoc & {
   stats: TotalLearningFullStats | null;
@@ -29,6 +30,18 @@ export default function ShareScreen() {
 
   const [accuaryTab, setAccuaryTab] = useState<boolean>(false);
   const [modeTab, setModeTab] = useState<boolean>(false);
+
+  // 학습 내역
+  const [stats, setStats] = useState<TotalLearningFullStats | null>(null);
+
+  // 총합 기록
+  const fetchStats = async () => {
+    const result = await getTotalLearningStats(); // or getTotalLearningStats / getFolderLearningStats("abc")
+    if (result) {
+      setStats(result);
+      console.log(result);
+    }
+  };
 
   const [folderList, setFolderList] = useState<FolderWithStats[]>([]);
 
@@ -51,6 +64,7 @@ export default function ShareScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchData();
+      fetchStats();
       setAccuaryTab(true);
       setModeTab(false);
       return () => {
@@ -79,10 +93,24 @@ export default function ShareScreen() {
             <Divider />
             <Text style={styles.title}>전체 학습 통계</Text>
             <TodaySummaryContents
+              totalLearningTime={
+                stats?.totalSolvedProblems !== undefined
+                  ? formatToHM(stats?.totalDuration)
+                  : "로딩중"
+              }
+              totalLearningProblems={
+                stats?.totalSolvedProblems !== undefined
+                  ? `${stats.totalSolvedProblems}개`
+                  : "로딩중"
+              }
               accuaryTab={accuaryTab}
               SetAccuaryTab={setAccuaryTab}
               modeTab={modeTab}
               SetModeTab={setModeTab}
+              accuracy={Math.min(Math.round(stats?.averageAccuracy || 0), 100)}
+              timed={stats?.modeCount.timed || 0}
+              free={stats?.modeCount.free || 0}
+              review={stats?.modeCount.review || 0}
             />
             <Text style={styles.title}>폴더 별 학습 통계</Text>
           </>
@@ -111,7 +139,7 @@ export default function ShareScreen() {
         )}
         ListEmptyComponent={
           <View style={{ padding: 32, alignItems: "center" }}>
-            <Text style={styles.emptyText}>표시할 데이터가 없습니다.</Text>
+            <Text style={styles.emptyText}>학습 내역이 없습니다.</Text>
           </View>
         }
       />

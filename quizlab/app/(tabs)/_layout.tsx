@@ -1,5 +1,5 @@
-import { Tabs, useNavigationContainerRef } from "expo-router";
-import { useNavigationState, Route } from "@react-navigation/native";
+import { Tabs, usePathname } from "expo-router";
+import { Route } from "@react-navigation/native";
 import React, { useRef } from "react";
 import { Platform, Pressable } from "react-native";
 
@@ -9,10 +9,11 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { GrayColors, MainColors } from "@/constants/Colors";
 
 export default function TabLayout() {
-  const navigationRef = useNavigationContainerRef();
-  const state = useNavigationState((state) => state);
-  const tabNavigationRefs = useRef<{ [key: string]: any }>({});
+  const pathname = usePathname();
+  console.log("현재 pathname:", pathname);
 
+  const hiddenRoutes = ["/share/"];
+  const shouldHideTabBar = hiddenRoutes.includes(pathname);
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -29,6 +30,7 @@ export default function TabLayout() {
             },
             default: {},
           }),
+          ...(shouldHideTabBar && { display: "none" }), // 특정 스크린에서 하단바 감춤
         },
       })}
     >

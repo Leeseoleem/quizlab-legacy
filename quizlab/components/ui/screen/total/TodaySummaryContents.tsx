@@ -15,17 +15,23 @@ import { formatToHM } from "@/utils/formatToHM";
 import LearnContainer from "../../card/LearnContainer";
 import SummaryTabCard, { SummaryTabCardProps } from "./SummaryTabCard";
 
-type SummaryTabCardPropsWithoutAccuracy = Omit<
-  SummaryTabCardProps,
-  "accuracy" | "timed" | "free" | "review"
->;
+type TotalSummaryContentsProps = {
+  totalLearningTime: string;
+  totalLearningProblems: string;
+} & SummaryTabCardProps;
 
 export default function TodaySummaryContents({
+  totalLearningTime,
+  totalLearningProblems,
   accuaryTab,
   SetAccuaryTab,
   modeTab,
   SetModeTab,
-}: SummaryTabCardPropsWithoutAccuracy) {
+  accuracy,
+  timed,
+  free,
+  review,
+}: TotalSummaryContentsProps) {
   // 학습 내역
   const [stats, setStats] = useState<TotalLearningFullStats | null>(null);
 
@@ -49,20 +55,12 @@ export default function TodaySummaryContents({
       <View style={styles.topContents}>
         <LearnContainer
           keyTitle="총 학습 시간"
-          value={
-            stats?.totalSolvedProblems !== undefined
-              ? formatToHM(stats?.totalDuration)
-              : "로딩중"
-          }
+          value={totalLearningTime}
           icon={<Feather name="clock" size={24} color={MainColors.primary} />}
         />
         <LearnContainer
           keyTitle="푼 문제 수"
-          value={
-            stats?.totalSolvedProblems !== undefined
-              ? `${stats.totalSolvedProblems}개`
-              : "로딩중"
-          }
+          value={totalLearningProblems}
           icon={<Feather name="edit-3" size={24} color={MainColors.primary} />}
         />
       </View>
@@ -71,10 +69,10 @@ export default function TodaySummaryContents({
         SetAccuaryTab={SetAccuaryTab}
         modeTab={modeTab}
         SetModeTab={SetModeTab}
-        accuracy={Math.min(Math.round(stats?.averageAccuracy || 0), 100)}
-        timed={stats?.modeCount.timed || 0}
-        free={stats?.modeCount.free || 0}
-        review={stats?.modeCount.review || 0}
+        accuracy={accuracy}
+        timed={timed}
+        free={free}
+        review={review}
       />
     </View>
   );

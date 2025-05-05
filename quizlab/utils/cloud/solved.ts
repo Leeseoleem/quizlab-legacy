@@ -275,3 +275,136 @@ export const updateSolvedProblemMemos = async (
     console.error("❌ Firestore 저장 실패:", e);
   }
 };
+
+// 자주 틀린 문제 Top 5 가져오기
+export type WrongProblemSummary = {
+  problemId: string;
+  question: string;
+  correctAnswer: string;
+  totalCount: number;
+  wrongCount: number;
+  wrongRate: number; // 정답률 (0~100)
+};
+
+export const getWrongTop5ByFolder = async (
+  folderId: string
+): Promise<WrongProblemSummary[]> => {
+  const user = auth.currentUser;
+  if (!user) {
+    console.log("❌ 유저 없음");
+    return [];
+  }
+
+  const userId = user.uid;
+  const problemStats: Record<
+    string,
+    Omit<WrongProblemSummary, "problemId" | "wrongRate">
+  > = {};
+
+  const solvedFoldersSnap = await getDocs(
+    collection(db, "user_info", userId, "solved_folders")
+  );
+
+  for (const folderDoc of solvedFoldersSnap.docs) {
+    const folderData = folderDoc.data();
+    if (folderData.folderId !== folderId) continue;
+
+    const problemsSnap = await getDocs(collection(folderDoc.ref, "problems"));
+
+    problemsSnap.docs.forEach((doc) => {
+      const data = doc.data();
+      const { problemId, question, correctAnswer, isCorrect } = data;
+
+      if (!problemId || !question || !correctAnswer) return;
+
+      if (!problemStats[problemId]) {
+        problemStats[problemId] = {
+          question,
+          correctAnswer,
+          totalCount: 0,
+          wrongCount: 0,
+        };
+      }
+
+      problemStats[problemId].totalCount++;
+      if (isCorrect === false) {
+        problemStats[problemId].wrongCount++;
+      }
+    });
+  }
+
+  const sorted = Object.entries(problemStats)
+    .map(([problemId, data]) => {
+      const wrongRate =
+        data.totalCount > 0 ? data.wrongCount / data.totalCount : 0;
+
+      return {
+        problemId,
+        question: data.question,
+        correctAnswer: data.correctAnswer,
+        totalCount: data.totalCount,
+        wrongCount: data.wrongCount,
+        wrongRate,
+      };
+    })
+    .filter((item) => item.wrongCount > 0) // ✅ 오답이 한 번도 없으면 제외
+    .sort((a, b) => b.wrongRate - a.wrongRate)
+    .slice(0, 5);
+
+  return sorted;
+};
+
+export type AccuracyPoint = {
+  date: string; // 날짜 (예: "2025-04-21")
+  accuracy: number; // 해당 날짜의 평균 정답률 (0~100)
+};
+
+// 평균 정답률 출력
+export const getFolderAccuracyByDate = async (
+  folderId: string
+): Promise<AccuracyPoint[]> => {
+  const user = auth.currentUser;
+  if (!user) {
+    console.log("❌ 유저 없음");
+    return [];
+  }
+
+  const userId = user.uid;
+  const snap = await getDocs(
+    collection(db, "user_info", userId, "solved_folders")
+  );
+
+  const accuracyByDate: Record<string, number[]> = {};
+
+  snap.docs.forEach((doc) => {
+    const data = doc.data();
+
+    // ✅ 해당 폴더만 필터
+    if (data.folderId !== folderId) return;
+
+    // ✅ 날짜와 정답률 유효한 경우만 처리
+    if (data.date && typeof data.accuracy === "number") {
+      const date = data.date;
+      if (!accuracyByDate[date]) accuracyByDate[date] = [];
+      accuracyByDate[date].push(data.accuracy);
+    }
+  });
+
+  // ✅ 날짜별 평균 계산
+  const aggregated: AccuracyPoint[] = Object.entries(accuracyByDate).map(
+    ([date, values]) => ({
+      date,
+      accuracy: values.reduce((sum, cur) => sum + cur, 0) / values.length,
+    })
+  );
+
+  // ✅ 날짜 내림차순 → 최근 날짜 기준 정렬
+  const sortedDesc = aggregated.sort((a, b) => b.date.localeCompare(a.date));
+
+  // ✅ 최근 10개만 추출하고 다시 오름차순 정렬
+  const latest10 = sortedDesc
+    .slice(0, 10)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return latest10;
+};
