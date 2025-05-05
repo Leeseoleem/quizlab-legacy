@@ -167,6 +167,11 @@ export default function TotalDetailScreen() {
               }}
               bezier
             />
+            <View
+              style={{
+                height: 24,
+              }}
+            />
             <Divider />
             <Text
               style={[
