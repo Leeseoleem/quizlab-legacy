@@ -40,7 +40,7 @@ export default function TotalCard({
         setModeName("시간 제한 모드");
         break;
       case "free":
-        setModeName(" 자유 모드");
+        setModeName("자유 모드");
         break;
       case "review":
         setModeName("해설 모드");
